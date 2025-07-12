@@ -19,7 +19,7 @@ The settings will be as followed:
 
 General
 - Import
-- Filename: <file_to_csv>
+- Filename: <file_to_endpoint_pfile_csv>
 - Format: csv
 
 Options
