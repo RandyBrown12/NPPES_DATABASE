@@ -54,3 +54,13 @@ To run the application run the command
 `python <path_to_pgadmin4.py_in_venv>`
 
 You can now access the postgres server
+
+
+## How to use with Gunicorn
+```
+gunicorn --bind unix:/tmp/pgadmin4.sock \
+         --workers=1 \
+         --threads=25 \
+         --chdir ~/NPPES/.venv/lib64/python3.12/site-packages/pgadmin4 \
+         pgAdmin4:app
+```
