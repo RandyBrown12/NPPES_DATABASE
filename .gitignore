@@ -2,3 +2,5 @@ Original_data/
 pg_data/
 .venv/
 info.json
+PID_FILE
+npidata_staging_cleaned.csv
