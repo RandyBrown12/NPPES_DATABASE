@@ -27,8 +27,8 @@ CREATE TABLE providers (
     npi_deactivation_date DATE,
     npi_reactivation_date DATE,
     provider_sex_code VARCHAR(1),
-    is_sole_proprietor YES_NO,
-    is_organization_subpart YES_NO,
+    is_sole_proprietor YES_OR_NO,
+    is_organization_subpart YES_OR_NO,
     parent_organization_lbn VARCHAR(200),
     parent_organization_tin VARCHAR(20),
     certification_date DATE
@@ -127,8 +127,8 @@ SELECT
     CASE WHEN "NPI_Deactivation_Date" IN ('', 'N/A') THEN NULL ELSE TO_DATE("NPI_Deactivation_Date", 'MM/DD/YYYY') END,
     CASE WHEN "NPI_Reactivation_Date" IN ('', 'N/A') THEN NULL ELSE TO_DATE("NPI_Reactivation_Date", 'MM/DD/YYYY') END,
     CASE WHEN "Provider_Sex_Code" IN ('', 'N/A') THEN NULL ELSE LEFT("Provider_Sex_Code", 1) END,
-    CASE WHEN TRIM("Is_Sole_Proprietor") IN ('', 'N/A', 'X', ' ') THEN NULL ELSE "Is_Sole_Proprietor"::YES_NO END,
-    CASE WHEN TRIM("Is_Organization_Subpart") IN ('', 'N/A', 'X', ' ') THEN NULL ELSE "Is_Organization_Subpart"::YES_NO END,
+    CASE WHEN TRIM("Is_Sole_Proprietor") IN ('', 'N/A', 'X', ' ') THEN NULL ELSE "Is_Sole_Proprietor"::YES_OR_NO END,
+    CASE WHEN TRIM("Is_Organization_Subpart") IN ('', 'N/A', 'X', ' ') THEN NULL ELSE "Is_Organization_Subpart"::YES_OR_NO END,
     "Parent_Organization_LBN", "Parent_Organization_TIN",
     CASE WHEN "Certification_Date" IN ('', 'N/A') THEN NULL ELSE TO_DATE("Certification_Date", 'MM/DD/YYYY') END
 FROM npi_staging;
@@ -144,7 +144,7 @@ SELECT * FROM (
         CASE WHEN tc = 'N/A' THEN NULL ELSE tc END AS taxonomy_code,
         lic,
         lic_state,
-        CASE WHEN TRIM(switchval) IN ('', 'N/A', 'X', ' ') THEN NULL ELSE switchval::YES_NO END,
+        CASE WHEN TRIM(switchval) IN ('', 'N/A', 'X', ' ') THEN NULL ELSE switchval::YES_OR_NO END,
         taxgroup
     FROM npi_staging,
     LATERAL (VALUES
