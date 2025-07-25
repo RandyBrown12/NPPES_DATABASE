@@ -62,17 +62,14 @@ CREATE TABLE provider_address (
 );
 
 -- 4. provider_other_identifier table 
-CREATE TABLE provider_authorized_official (
+CREATE TABLE provider_other_identifier (
     id SERIAL PRIMARY KEY,
     npi BIGINT REFERENCES providers(npi),
-    last_name VARCHAR(100),
-    first_name VARCHAR(100),
-    middle_name VARCHAR(100),
-    title_or_position VARCHAR(100),
-    telephone_number VARCHAR(20),
-    name_prefix_text VARCHAR(20),
-    name_suffix_text VARCHAR(20),
-    credential_text VARCHAR(50)
+    identifier_order INT, -- 1 to 50, corresponds to _1..._50
+    other_provider_identifier VARCHAR(1000),
+    type_code VARCHAR(10),
+    state VARCHAR(5),
+    issuer VARCHAR(200)
 );
 
 -- 5. provider_authorized_official (npi as PK)
