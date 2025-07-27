@@ -9,7 +9,9 @@ CREATE TABLE IF NOT EXISTS ENDPOINT_AFFILIATION(
     AFFILIATION_ADDRESS_CITY VARCHAR(40) NOT NULL DEFAULT 'N/A',
     AFFILIATION_ADDRESS_STATE VARCHAR(40) NOT NULL DEFAULT 'N/A',
     AFFILIATION_ADDRESS_COUNTRY CHAR(2) NOT NULL DEFAULT 'XX',
-    AFFILIATION_ADDRESS_POSTAL_CODE VARCHAR(9) NOT NULL DEFAULT '000000000'
+    AFFILIATION_ADDRESS_POSTAL_CODE VARCHAR(9) NOT NULL DEFAULT '000000000',
+    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS ENDPOINTS(
@@ -27,6 +29,8 @@ CREATE TABLE IF NOT EXISTS ENDPOINTS(
     CONTENT_TYPE VARCHAR(25) NOT NULL DEFAULT 'N/A',
     CONTENT_DESCRIPTION VARCHAR(100) NOT NULL DEFAULT 'N/A',
     OTHER_CONTENT_DESCRIPTION VARCHAR(200) NOT NULL DEFAULT 'N/A',
+    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
     FOREIGN KEY (AFFILIATION_ID) REFERENCES ENDPOINT_AFFILIATION(AFFILIATION_ID)
 );
 
@@ -63,7 +67,9 @@ CREATE TABLE providers (
     is_organization_subpart YES_OR_NO,
     parent_organization_lbn VARCHAR(200),
     parent_organization_tin VARCHAR(20),
-    certification_date DATE
+    certification_date DATE,
+    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- 2. provider_taxonomy table 
@@ -75,7 +81,9 @@ CREATE TABLE provider_taxonomy (
     license_number VARCHAR(50),
     license_number_state_code VARCHAR(5),
     primary_taxonomy_switch VARCHAR(1),
-    taxonomy_group VARCHAR(100)
+    taxonomy_group VARCHAR(100),
+    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- 3. provider_address table 
@@ -90,7 +98,9 @@ CREATE TABLE provider_address (
     postal_code VARCHAR(20),
     country_code VARCHAR(5),
     telephone_number VARCHAR(20),
-    fax_number VARCHAR(20)
+    fax_number VARCHAR(20),
+    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- 4. provider_other_identifier table 
@@ -101,7 +111,9 @@ CREATE TABLE provider_other_identifier (
     other_provider_identifier VARCHAR(1000),
     type_code VARCHAR(10),
     state VARCHAR(5),
-    issuer VARCHAR(200)
+    issuer VARCHAR(200),
+    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- 5. provider_authorized_official (npi as PK)
@@ -115,6 +127,8 @@ CREATE TABLE provider_authorized_official (
     name_prefix_text VARCHAR(20),
     name_suffix_text VARCHAR(20),
     credential_text VARCHAR(50),
+    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
     FOREIGN KEY (npi) REFERENCES providers(npi)
 );
 
@@ -122,7 +136,9 @@ CREATE TABLE provider_authorized_official (
 CREATE TABLE taxonomy_reference (
     taxonomy_code VARCHAR(20) PRIMARY KEY,
     specialization VARCHAR(255),
-    definition TEXT
+    definition TEXT,
+    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 --# Othername File
@@ -135,6 +151,8 @@ CREATE TABLE provider_othername (
     npi VARCHAR(10) NOT NULL,
     other_name VARCHAR(255) NOT NULL,
     name_type_code CHAR(1) NOT NULL,
+    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (npi, other_name, name_type_code)
 );
 
@@ -161,9 +179,6 @@ CREATE TABLE IF NOT EXISTS STAGING_TABLE_ENDPOINTS(
     AFFILIATION_ADDRESS_COUNTRY CHAR(2),
     AFFILIATION_ADDRESS_POSTAL_CODE VARCHAR
 );
-
-DELETE FROM STAGING_TABLE_ENDPOINTS
-WHERE LENGTH(affiliation_address_postal_code) >= 10;
 
 CREATE TABLE STAGING_TABLE_NPI (
     "NPI" TEXT,
