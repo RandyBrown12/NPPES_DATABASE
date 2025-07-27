@@ -11,9 +11,9 @@ Access your Database through pgAdmin4 and use the query tool.
 Once inside, copy the contents of schema.sql into the query tool and execute the script.
 
 ## How to load the tables into the database.
-Access your Database through pgAdmin4 and use the query tool.
-Once inside, copy the contents of load_data.sql into the query tool and execute the first query.
-Once executed, go into staging_table table and select Import/Export Data.
+Access your Database through pgAdmin4 and use the query tool or psql.
+* pgAdmin4
+Once inside, go into the tables starting with staging and select Import/Export Data.
 > Note: Make sure values from csv file (Ex. ,"",) are changed to have nothing (Ex. ,,). This can be done by just saving through excel.
 The settings will be as followed:
 
@@ -29,8 +29,12 @@ Options
 - Escape: 
 - NULL strings: 
 
-Once the data is copied, you can run the other queries.
+* psql 
+Enter credientials to access the database and copy all the staging tables from the correct NPPES csv file not containing fileheader
+Ex: ```\COPY STAGING_TABLE_<NAME> FROM '</path/to/.csv>' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '"', NULL '');
+> Note: For STAGING_TABLE_NPI, You must run db_staging.py by doing `python db_staging.py` and change input_csv variable inside the file to the path of npidata_pfile_XXXXXXXX-XXXXXXXX.csv
 
+Once all data is copied you can run load_data.sql
 ## Setting up a Postgres web application
 1. Add a virtual environment
 Command: `python -m venv .venv`
