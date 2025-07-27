@@ -28,7 +28,7 @@ CREATE TABLE pl_data (
     -- (You may continue adding more columns if your full file includes them)
 );
 
-\COPY pl_data FROM '/home/rbrown/NPPES/Original_data/pl_pfile_20050523-20250608.csv'
+\COPY pl_data FROM 'path/to/pl_pfile_20050523-20250608.csv'
 WITH (
     FORMAT csv,
     HEADER true,
