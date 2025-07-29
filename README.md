@@ -12,9 +12,11 @@ Once inside, copy the contents of schema.sql into the query tool and execute the
 
 ## How to load the tables into the database.
 Access your Database through pgAdmin4 and use the query tool or psql.
+
 * pgAdmin4
 Once inside, go into the tables starting with staging and select Import/Export Data.
-> Note: Make sure values from csv file (Ex. ,"",) are changed to have nothing (Ex. ,,). This can be done by just saving through excel.
+> Note: Make sure values from csv file (Ex. ,"",) are changed to have nothing (Ex. ,,). This can be done by just saving through excel or
+        you can use this command `sed 's/""//g' endpoint_pfile_XXXXXXXX-XXXXXXXX.csv > endpoint_cleaned.csv` but note that "" values in your data will be replaced.
 The settings will be as followed:
 
 General
