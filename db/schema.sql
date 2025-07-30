@@ -4,7 +4,8 @@ CREATE TYPE YES_OR_NO AS ENUM ('Y','N','X');
 --# Providers File
 -- 1. Providers table (npi as PK)
 CREATE TABLE providers (
-    npi BIGINT PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
+    npi BIGINT UNIQUE,
     entity_type_code VARCHAR(3),
     replacement_npi BIGINT,
     employer_identification_number VARCHAR(20),
@@ -42,7 +43,7 @@ CREATE TABLE providers (
 -- 2. provider_taxonomy table 
 CREATE TABLE provider_taxonomy (
     id SERIAL PRIMARY KEY,
-    npi BIGINT REFERENCES providers(npi),
+    provider_id BIGINT NOT NULL REFERENCES providers(id),
     taxonomy_order INT, -- 1 to 15, corresponds to _1..._15
     taxonomy_code VARCHAR(20),
     license_number VARCHAR(50),
@@ -56,7 +57,7 @@ CREATE TABLE provider_taxonomy (
 -- 3. provider_address table 
 CREATE TABLE provider_address (
     id SERIAL PRIMARY KEY,
-    npi BIGINT REFERENCES providers(npi),
+    provider_id BIGINT NOT NULL REFERENCES providers(id),
     address_type VARCHAR(30), -- e.g., 'mailing', 'practice'
     first_line VARCHAR(200),
     second_line VARCHAR(200),
@@ -73,7 +74,7 @@ CREATE TABLE provider_address (
 -- 4. provider_other_identifier table 
 CREATE TABLE provider_other_identifier (
     id SERIAL PRIMARY KEY,
-    npi BIGINT REFERENCES providers(npi),
+    provider_id BIGINT NOT NULL REFERENCES providers(id),
     identifier_order INT, -- 1 to 50, corresponds to _1..._50
     other_provider_identifier VARCHAR(1000),
     type_code VARCHAR(10),
@@ -85,7 +86,9 @@ CREATE TABLE provider_other_identifier (
 
 -- 5. provider_authorized_official (npi as PK)
 CREATE TABLE provider_authorized_official (
-    npi BIGINT PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
+    provider_id BIGINT NOT NULL REFERENCES providers(id),
+    npi BIGINT,
     last_name VARCHAR(100),
     first_name VARCHAR(100),
     middle_name VARCHAR(100),
@@ -96,12 +99,12 @@ CREATE TABLE provider_authorized_official (
     credential_text VARCHAR(50),
     CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
-    FOREIGN KEY (npi) REFERENCES providers(npi)
 );
 
 -- 6. taxonomy_reference (taxonomy_code as PK)
 CREATE TABLE taxonomy_reference (
-    taxonomy_code VARCHAR(20) PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
+    taxonomy_code VARCHAR(20),
     specialization VARCHAR(255),
     definition TEXT,
     CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
