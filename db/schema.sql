@@ -2,10 +2,10 @@
 CREATE TYPE YES_OR_NO AS ENUM ('Y','N','X');
 
 --# Providers File
--- 1. Providers table (npi as PK)
 CREATE TABLE providers (
-    npi BIGINT PRIMARY KEY,
-    entity_type_code VARCHAR(3),
+    id BIGSERIAL PRIMARY KEY,
+    npi BIGINT UNIQUE,
+    entity_type_code VARCHAR(5),
     replacement_npi BIGINT,
     employer_identification_number VARCHAR(20),
     provider_organization_name VARCHAR(200),
@@ -16,47 +16,42 @@ CREATE TABLE providers (
     provider_name_suffix_text VARCHAR(20),
     provider_credential_text VARCHAR(50),
     provider_other_organization_name VARCHAR(200),
-    provider_other_organization_name_type_code VARCHAR(3),
+    provider_other_organization_name_type_code VARCHAR(5),
     provider_other_last_name VARCHAR(100),
     provider_other_first_name VARCHAR(100),
     provider_other_middle_name VARCHAR(100),
     provider_other_name_prefix_text VARCHAR(20),
     provider_other_name_suffix_text VARCHAR(20),
     provider_other_credential_text VARCHAR(50),
-    provider_other_last_name_type_code VARCHAR(3),
+    provider_other_last_name_type_code VARCHAR(5),
     provider_enumeration_date DATE,
     last_update_date DATE,
-    npi_deactivation_reason_code VARCHAR(3),
+    npi_deactivation_reason_code VARCHAR(5),
     npi_deactivation_date DATE,
     npi_reactivation_date DATE,
-    provider_sex_code VARCHAR(1),
-    is_sole_proprietor YES_OR_NO,
-    is_organization_subpart YES_OR_NO,
+    provider_sex_code VARCHAR(5),
+    is_sole_proprietor YES_NO,
+    is_organization_subpart YES_NO,
     parent_organization_lbn VARCHAR(200),
     parent_organization_tin VARCHAR(20),
-    certification_date DATE,
-    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
+    certification_date DATE
 );
-
 -- 2. provider_taxonomy table 
 CREATE TABLE provider_taxonomy (
     id SERIAL PRIMARY KEY,
-    npi BIGINT REFERENCES providers(npi),
+    provider_id BIGINT NOT NULL REFERENCES providers(id),
     taxonomy_order INT, -- 1 to 15, corresponds to _1..._15
     taxonomy_code VARCHAR(20),
     license_number VARCHAR(50),
     license_number_state_code VARCHAR(5),
-    primary_taxonomy_switch VARCHAR(1),
-    taxonomy_group VARCHAR(100),
-    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
+    primary_taxonomy_switch VARCHAR(5),
+    taxonomy_group VARCHAR(100)
 );
 
 -- 3. provider_address table 
 CREATE TABLE provider_address (
     id SERIAL PRIMARY KEY,
-    npi BIGINT REFERENCES providers(npi),
+    provider_id BIGINT NOT NULL REFERENCES providers(id),
     address_type VARCHAR(30), -- e.g., 'mailing', 'practice'
     first_line VARCHAR(200),
     second_line VARCHAR(200),
@@ -65,27 +60,24 @@ CREATE TABLE provider_address (
     postal_code VARCHAR(20),
     country_code VARCHAR(5),
     telephone_number VARCHAR(20),
-    fax_number VARCHAR(20),
-    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
+    fax_number VARCHAR(20)
 );
 
 -- 4. provider_other_identifier table 
 CREATE TABLE provider_other_identifier (
-    id SERIAL PRIMARY KEY,
-    npi BIGINT REFERENCES providers(npi),
-    identifier_order INT, -- 1 to 50, corresponds to _1..._50
+    id BIGSERIAL PRIMARY KEY,
+    provider_id BIGINT NOT NULL REFERENCES providers(id),
+    identifier_order SMALLINT NOT NULL,
     other_provider_identifier VARCHAR(1000),
-    type_code VARCHAR(10),
-    state VARCHAR(5),
-    issuer VARCHAR(200),
-    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
+    type_code VARCHAR(50),
+    state VARCHAR(50),
+    issuer VARCHAR(200)
 );
 
--- 5. provider_authorized_official (npi as PK)
+-- 5. provider_authorized_official 
 CREATE TABLE provider_authorized_official (
-    npi BIGINT PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
+    provider_id BIGINT NOT NULL REFERENCES providers(id),
     last_name VARCHAR(100),
     first_name VARCHAR(100),
     middle_name VARCHAR(100),
@@ -93,19 +85,15 @@ CREATE TABLE provider_authorized_official (
     telephone_number VARCHAR(20),
     name_prefix_text VARCHAR(20),
     name_suffix_text VARCHAR(20),
-    credential_text VARCHAR(50),
-    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
-    FOREIGN KEY (npi) REFERENCES providers(npi)
+    credential_text VARCHAR(50)
 );
-
--- 6. taxonomy_reference (taxonomy_code as PK)
+    
+-- 6. taxonomy_reference
 CREATE TABLE taxonomy_reference (
-    taxonomy_code VARCHAR(20) PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
+    taxonomy_code VARCHAR(20),
     specialization VARCHAR(255),
-    definition TEXT,
-    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
+    definition TEXT
 );
 
 --# Endpoints File
