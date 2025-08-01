@@ -5,37 +5,37 @@ CREATE TYPE YES_OR_NO AS ENUM ('Y','N','X');
 -- 1. Providers table (npi as PK)
 CREATE TABLE providers (
     id BIGSERIAL PRIMARY KEY,
-    npi BIGINT UNIQUE,
-    entity_type_code VARCHAR(3),
-    replacement_npi BIGINT,
-    employer_identification_number VARCHAR(20),
-    provider_organization_name VARCHAR(200),
-    provider_last_name VARCHAR(100),
-    provider_first_name VARCHAR(100),
-    provider_middle_name VARCHAR(100),
-    provider_name_prefix_text VARCHAR(20),
-    provider_name_suffix_text VARCHAR(20),
-    provider_credential_text VARCHAR(50),
-    provider_other_organization_name VARCHAR(200),
-    provider_other_organization_name_type_code VARCHAR(3),
-    provider_other_last_name VARCHAR(100),
-    provider_other_first_name VARCHAR(100),
-    provider_other_middle_name VARCHAR(100),
-    provider_other_name_prefix_text VARCHAR(20),
-    provider_other_name_suffix_text VARCHAR(20),
-    provider_other_credential_text VARCHAR(50),
-    provider_other_last_name_type_code VARCHAR(3),
-    provider_enumeration_date DATE,
-    last_update_date DATE,
-    npi_deactivation_reason_code VARCHAR(3),
-    npi_deactivation_date DATE,
-    npi_reactivation_date DATE,
-    provider_sex_code VARCHAR(1),
-    is_sole_proprietor YES_OR_NO,
-    is_organization_subpart YES_OR_NO,
-    parent_organization_lbn VARCHAR(200),
-    parent_organization_tin VARCHAR(20),
-    certification_date DATE,
+    npi BIGINT UNIQUE NOT NULL,
+    entity_type_code VARCHAR(3) NOT NULL,
+    replacement_npi BIGINT NOT NULL,
+    employer_identification_number VARCHAR(20) NOT NULL,
+    provider_organization_name VARCHAR(200) NOT NULL,
+    provider_last_name VARCHAR(100) NOT NULL,
+    provider_first_name VARCHAR(100) NOT NULL,
+    provider_middle_name VARCHAR(100) NOT NULL,
+    provider_name_prefix_text VARCHAR(20) NOT NULL,
+    provider_name_suffix_text VARCHAR(20) NOT NULL,
+    provider_credential_text VARCHAR(50) NOT NULL,
+    provider_other_organization_name VARCHAR(200) NOT NULL,
+    provider_other_organization_name_type_code VARCHAR(3) NOT NULL,
+    provider_other_last_name VARCHAR(100) NOT NULL,
+    provider_other_first_name VARCHAR(100) NOT NULL,
+    provider_other_middle_name VARCHAR(100) NOT NULL,
+    provider_other_name_prefix_text VARCHAR(20) NOT NULL,
+    provider_other_name_suffix_text VARCHAR(20) NOT NULL,
+    provider_other_credential_text VARCHAR(50) NOT NULL,
+    provider_other_last_name_type_code VARCHAR(3) NOT NULL,
+    provider_enumeration_date DATE NOT NULL,
+    last_update_date DATE NOT NULL,
+    npi_deactivation_reason_code VARCHAR(3) NOT NULL,
+    npi_deactivation_date DATE NOT NULL,
+    npi_reactivation_date DATE NOT NULL,
+    provider_sex_code VARCHAR(1) NOT NULL,
+    is_sole_proprietor YES_OR_NO NOT NULL,
+    is_organization_subpart YES_OR_NO NOT NULL,
+    parent_organization_lbn VARCHAR(200) NOT NULL,
+    parent_organization_tin VARCHAR(20) NOT NULL,
+    certification_date DATE NOT NULL,
     CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -44,12 +44,12 @@ CREATE TABLE providers (
 CREATE TABLE provider_taxonomy (
     id SERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
-    taxonomy_order INT, -- 1 to 15, corresponds to _1..._15
-    taxonomy_code VARCHAR(20),
-    license_number VARCHAR(50),
-    license_number_state_code VARCHAR(5),
-    primary_taxonomy_switch VARCHAR(1),
-    taxonomy_group VARCHAR(100),
+    taxonomy_order INT NOT NULL, -- 1 to 15, corresponds to _1..._15
+    taxonomy_code VARCHAR(20) NOT NULL,
+    license_number VARCHAR(50) NOT NULL,
+    license_number_state_code VARCHAR(5) NOT NULL,
+    primary_taxonomy_switch VARCHAR(1) NOT NULL,
+    taxonomy_group VARCHAR(100) NOT NULL,
     CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -58,15 +58,15 @@ CREATE TABLE provider_taxonomy (
 CREATE TABLE provider_address (
     id SERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
-    address_type VARCHAR(30), -- e.g., 'mailing', 'practice'
-    first_line VARCHAR(200),
-    second_line VARCHAR(200),
-    city VARCHAR(100),
-    state VARCHAR(50),
-    postal_code VARCHAR(20),
-    country_code VARCHAR(5),
-    telephone_number VARCHAR(20),
-    fax_number VARCHAR(20),
+    address_type VARCHAR(30) NOT NULL, -- e.g., 'mailing', 'practice'
+    first_line VARCHAR(200) NOT NULL,
+    second_line VARCHAR(200) NOT NULL,
+    city VARCHAR(100) NOT NULL,
+    state VARCHAR(50) NOT NULL,
+    postal_code VARCHAR(20) NOT NULL,
+    country_code VARCHAR(5) NOT NULL,
+    telephone_number VARCHAR(20) NOT NULL,
+    fax_number VARCHAR(20) NOT NULL,
     CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -75,11 +75,11 @@ CREATE TABLE provider_address (
 CREATE TABLE provider_other_identifier (
     id SERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
-    identifier_order INT, -- 1 to 50, corresponds to _1..._50
-    other_provider_identifier VARCHAR(1000),
-    type_code VARCHAR(10),
-    state VARCHAR(5),
-    issuer VARCHAR(200),
+    identifier_order INT NOT NULL, -- 1 to 50, corresponds to _1..._50
+    other_provider_identifier VARCHAR(1000) NOT NULL,
+    type_code VARCHAR(10) NOT NULL,
+    state VARCHAR(5) NOT NULL,
+    issuer VARCHAR(200) NOT NULL,
     CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -88,15 +88,15 @@ CREATE TABLE provider_other_identifier (
 CREATE TABLE provider_authorized_official (
     id BIGSERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
-    npi BIGINT,
-    last_name VARCHAR(100),
-    first_name VARCHAR(100),
-    middle_name VARCHAR(100),
-    title_or_position VARCHAR(100),
-    telephone_number VARCHAR(20),
-    name_prefix_text VARCHAR(20),
-    name_suffix_text VARCHAR(20),
-    credential_text VARCHAR(50),
+    npi BIGINT NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    middle_name VARCHAR(100) NOT NULL,
+    title_or_position VARCHAR(100) NOT NULL,
+    telephone_number VARCHAR(20) NOT NULL,
+    name_prefix_text VARCHAR(20) NOT NULL,
+    name_suffix_text VARCHAR(20) NOT NULL,
+    credential_text VARCHAR(50) NOT NULL,
     CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
 );
@@ -104,9 +104,9 @@ CREATE TABLE provider_authorized_official (
 -- 6. taxonomy_reference (taxonomy_code as PK)
 CREATE TABLE taxonomy_reference (
     id BIGSERIAL PRIMARY KEY,
-    taxonomy_code VARCHAR(20),
-    specialization VARCHAR(255),
-    definition TEXT,
+    taxonomy_code VARCHAR(20) NOT NULL,
+    specialization VARCHAR(255) NOT NULL,
+    definition TEXT NOT NULL,
     CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -533,3 +533,4 @@ CREATE TABLE staging_othername_pfile (
 -- WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '"', ENCODING 'UTF8', NULL '');
 -- Example 2:
 -- \COPY STAGING_TABLE_ENDPOINTS FROM '/path/to/endpoint_pfile.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '"');
+-- \COPY STAGING_OTHERNAME_PFILE FROM '/home/rbrown/NPPES/Original_data/othername_pfile_20050523-20250608.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '"');
