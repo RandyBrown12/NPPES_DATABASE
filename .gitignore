@@ -4,3 +4,5 @@ pg_data/
 info.json
 PID_FILE
 npidata_staging_cleaned.csv
+__pycache__/
+.pytest_cache/
