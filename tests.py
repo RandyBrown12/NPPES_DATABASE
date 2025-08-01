@@ -1,7 +1,6 @@
 import psycopg2
 import json
 import subprocess
-import pandas as pd
 
 def test_database_connection():
     """
@@ -36,9 +35,10 @@ def test_database_count_for_endpoints():
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM ENDPOINTS")
     database_count = cursor.fetchone()[0]
-    csv_count_df = pd.read_csv('Original_data/endpoint_pfile_20050523-20250608.csv', dtype=str)
-    csv_count = len(csv_count_df) - 1  # Subtract 1 for the header row
-    assert database_count == csv_count, "Database count for endpoints does not match CSV count"
+    word_count_command = ["wc", "-l", "Original_data/endpoint_pfile_20050523-20250608.csv"]
+    csv_count_output = subprocess.run(word_count_command, capture_output=True, text=True)
+    csv_count = (int(csv_count_output.stdout.split()[0]) - 1) # Subtracting 1 for header row
+    assert database_count == csv_count, "Database count for endpoint does not match CSV count"
 
 def test_database_count_for_npi():
     """
@@ -58,7 +58,7 @@ def test_database_count_for_npi():
     database_count = cursor.fetchone()[0]
     word_count_command = ["wc", "-l", "Original_data/npidata_cleaned.csv"]
     csv_count_output = subprocess.run(word_count_command, capture_output=True, text=True)
-    csv_count = (int(csv_count_output.stdout.split()[0]) - 1)
+    csv_count = (int(csv_count_output.stdout.split()[0]) - 1) # Subtracting 1 for header row
     assert database_count == csv_count, "Database count for NPI does not match CSV count"
 
 def test_database_count_for_othername():
@@ -79,5 +79,5 @@ def test_database_count_for_othername():
     database_count = cursor.fetchone()[0]
     word_count_command = ["wc", "-l", "Original_data/othername_pfile_20050523-20250608.csv"]
     csv_count_output = subprocess.run(word_count_command, capture_output=True, text=True)
-    csv_count = (int(csv_count_output.stdout.split()[0]) - 1)
+    csv_count = (int(csv_count_output.stdout.split()[0]) - 1) # Subtracting 1 for header row
     assert database_count == csv_count, "Database count for other names does not match CSV count"
