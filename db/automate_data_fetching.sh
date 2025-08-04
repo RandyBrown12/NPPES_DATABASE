@@ -21,8 +21,12 @@ YEAR=$(date +%Y)
 
 DATA_LINK="https://download.cms.gov/nppes/NPPES_Data_Dissemination_${MONTH}_${YEAR}_V2.zip"
 DEST_ZIP="NPPES_Data_Dissemination_${MONTH}_${YEAR}_V2.zip"
+
+mkdir -p ../Original_data
+
 cd ../Original_data || exit 1
 
+# Grab a link to use with curl from the data link site.
 curl -o "$DEST_ZIP" "$DATA_LINK"
 
 unzip "$DEST_ZIP"
