@@ -33,19 +33,29 @@ SELECT
     CASE WHEN "Certification_Date" IN ('', 'N/A') THEN NULL ELSE TO_DATE("Certification_Date", 'MM/DD/YYYY') END
 FROM STAGING_TABLE_NPI;
 
-
+-- ======================
+-- Insert into provider_taxonomy (1-15)
+-- ======================
 INSERT INTO provider_taxonomy (
-    npi, taxonomy_order, taxonomy_code, license_number, license_number_state_code, primary_taxonomy_switch, taxonomy_group
+    provider_id, taxonomy_order, taxonomy_code, license_number, license_number_state_code, primary_taxonomy_switch, taxonomy_group
 )
-SELECT * FROM (
+SELECT
+    p.id,
+    t.taxonomy_order,
+    t.taxonomy_code,
+    t.license_number,
+    t.license_number_state_code,
+    t.primary_taxonomy_switch,
+    t.taxonomy_group
+FROM (
     SELECT
-        CASE WHEN "NPI" IN ('', 'N/A') THEN NULL ELSE "NPI"::BIGINT END,
+        "NPI"::BIGINT AS npi,
         i AS taxonomy_order,
-        CASE WHEN tc = 'N/A' THEN NULL ELSE tc END AS taxonomy_code,
-        lic,
-        lic_state,
-        CASE WHEN TRIM(switchval) IN ('', 'N/A', 'X', ' ') THEN NULL ELSE switchval::YES_OR_NO END,
-        taxgroup
+        tc AS taxonomy_code,
+        lic AS license_number,
+        lic_state AS license_number_state_code,
+        switchval AS primary_taxonomy_switch,
+        taxgroup AS taxonomy_group
     FROM STAGING_TABLE_NPI,
     LATERAL (VALUES
         (1, "Healthcare_Provider_Taxonomy_Code_1", "Provider_License_Number_1", "Provider_License_Number_State_Code_1", "Healthcare_Provider_Primary_Taxonomy_Switch_1", "Healthcare_Provider_Taxonomy_Group_1"),
@@ -64,18 +74,28 @@ SELECT * FROM (
         (14, "Healthcare_Provider_Taxonomy_Code_14", "Provider_License_Number_14", "Provider_License_Number_State_Code_14", "Healthcare_Provider_Primary_Taxonomy_Switch_14", "Healthcare_Provider_Taxonomy_Group_14"),
         (15, "Healthcare_Provider_Taxonomy_Code_15", "Provider_License_Number_15", "Provider_License_Number_State_Code_15", "Healthcare_Provider_Primary_Taxonomy_Switch_15", "Healthcare_Provider_Taxonomy_Group_15")
     ) AS vals(i, tc, lic, lic_state, switchval, taxgroup)
-) AS all_rows
-WHERE taxonomy_code IS NOT NULL AND taxonomy_code NOT IN ('', 'N/A');
+) t
+JOIN providers p ON t.npi = p.npi
+WHERE t.taxonomy_code IS NOT NULL AND t.taxonomy_code NOT IN ('', 'N/A');
 
-
+-- ======================
+-- Insert into provider_other_identifier (1-50)
+-- ======================
 INSERT INTO provider_other_identifier (
-    npi, identifier_order, other_provider_identifier, type_code, state, issuer
+    provider_id, identifier_order, other_provider_identifier, type_code, state, issuer
 )
-SELECT * FROM (
+SELECT
+    p.id,
+    t.identifier_order,
+    t.other_provider_identifier,
+    t.type_code,
+    t.state,
+    t.issuer
+FROM (
     SELECT
-        CASE WHEN "NPI" IN ('', 'N/A') THEN NULL ELSE "NPI"::BIGINT END,
+        "NPI"::BIGINT AS npi,
         i AS identifier_order,
-        CASE WHEN id = 'N/A' THEN NULL ELSE id END AS other_provider_identifier,
+        id AS other_provider_identifier,
         type_code,
         state,
         issuer
@@ -132,63 +152,73 @@ SELECT * FROM (
         (49, "Other_Provider_Identifier_49", "Other_Provider_Identifier_Type_Code_49", "Other_Provider_Identifier_State_49", "Other_Provider_Identifier_Issuer_49"),
         (50, "Other_Provider_Identifier_50", "Other_Provider_Identifier_Type_Code_50", "Other_Provider_Identifier_State_50", "Other_Provider_Identifier_Issuer_50")
     ) AS vals(i, id, type_code, state, issuer)
-) AS all_rows
-WHERE other_provider_identifier IS NOT NULL AND other_provider_identifier NOT IN ('', 'N/A');
+) t
+JOIN providers p ON t.npi = p.npi
+WHERE t.other_provider_identifier IS NOT NULL AND t.other_provider_identifier NOT IN ('', 'N/A');
 
-
--- Mailing Address
+-- ======================
+-- Insert into provider_address (mailing)
+-- ======================
 INSERT INTO provider_address (
-    npi, address_type, first_line, second_line, city, state, postal_code, country_code, telephone_number, fax_number
+    provider_id, address_type, first_line, second_line, city, state, postal_code, country_code, telephone_number, fax_number
 )
 SELECT
-    CASE WHEN "NPI" IN ('', 'N/A') THEN NULL ELSE "NPI"::BIGINT END,
+    p.id,
     'mailing',
-    "Provider_First_Line_Business_Mailing_Address",
-    "Provider_Second_Line_Business_Mailing_Address",
-    "Provider_Business_Mailing_Address_City_Name",
-    "Provider_Business_Mailing_Address_State_Name",
-    "Provider_Business_Mailing_Address_Postal_Code",
-    "Provider_Business_Mailing_Address_Country_Code_If_outside_U_S_",
-    "Provider_Business_Mailing_Address_Telephone_Number",
-    "Provider_Business_Mailing_Address_Fax_Number"
-FROM STAGING_TABLE_NPI
-WHERE "Provider_First_Line_Business_Mailing_Address" IS NOT NULL AND "Provider_First_Line_Business_Mailing_Address" NOT IN ('', 'N/A');
+    s."Provider_First_Line_Business_Mailing_Address",
+    s."Provider_Second_Line_Business_Mailing_Address",
+    s."Provider_Business_Mailing_Address_City_Name",
+    s."Provider_Business_Mailing_Address_State_Name",
+    s."Provider_Business_Mailing_Address_Postal_Code",
+    s."Provider_Business_Mailing_Address_Country_Code_If_outside_U_S_",
+    s."Provider_Business_Mailing_Address_Telephone_Number",
+    s."Provider_Business_Mailing_Address_Fax_Number"
+FROM STAGING_TABLE_NPI s
+JOIN providers p ON s."NPI" = p.npi
+WHERE s."Provider_First_Line_Business_Mailing_Address" IS NOT NULL AND s."Provider_First_Line_Business_Mailing_Address" NOT IN ('', 'N/A');
 
--- Practice Address
+-- ======================
+-- Insert into provider_address (practice)
+-- ======================
 INSERT INTO provider_address (
-    npi, address_type, first_line, second_line, city, state, postal_code, country_code, telephone_number, fax_number
+    provider_id, address_type, first_line, second_line, city, state, postal_code, country_code, telephone_number, fax_number
 )
 SELECT
-    CASE WHEN "NPI" IN ('', 'N/A') THEN NULL ELSE "NPI"::BIGINT END,
+    p.id,
     'practice',
-    "Provider_First_Line_Business_Practice_Location_Address",
-    "Provider_Second_Line_Business_Practice_Location_Address",
-    "Provider_Business_Practice_Location_Address_City_Name",
-    "Provider_Business_Practice_Location_Address_State_Name",
-    "Provider_Business_Practice_Location_Address_Postal_Code",
-    "Provider_Business_Practice_Location_Address_Country_Code_If_outside_U_S_",
-    "Provider_Business_Practice_Location_Address_Telephone_Number",
-    "Provider_Business_Practice_Location_Address_Fax_Number"
-FROM STAGING_TABLE_NPI
-WHERE "Provider_First_Line_Business_Practice_Location_Address" IS NOT NULL AND "Provider_First_Line_Business_Practice_Location_Address" NOT IN ('', 'N/A');
+    s."Provider_First_Line_Business_Practice_Location_Address",
+    s."Provider_Second_Line_Business_Practice_Location_Address",
+    s."Provider_Business_Practice_Location_Address_City_Name",
+    s."Provider_Business_Practice_Location_Address_State_Name",
+    s."Provider_Business_Practice_Location_Address_Postal_Code",
+    s."Provider_Business_Practice_Location_Address_Country_Code_If_outside_U_S_",
+    s."Provider_Business_Practice_Location_Address_Telephone_Number",
+    s."Provider_Business_Practice_Location_Address_Fax_Number"
+FROM STAGING_TABLE_NPI s
+JOIN providers p ON s."NPI" = p.npi
+WHERE s."Provider_First_Line_Business_Practice_Location_Address" IS NOT NULL AND s."Provider_First_Line_Business_Practice_Location_Address" NOT IN ('', 'N/A');
 
-
+-- ======================
+-- Insert into provider_authorized_official
+-- ======================
 INSERT INTO provider_authorized_official (
-    npi, last_name, first_name, middle_name, title_or_position, telephone_number,
+    provider_id, npi, last_name, first_name, middle_name, title_or_position, telephone_number,
     name_prefix_text, name_suffix_text, credential_text
 )
 SELECT
-    CASE WHEN "NPI" IN ('', 'N/A') THEN NULL ELSE "NPI"::BIGINT END,
-    "Authorized_Official_Last_Name",
-    "Authorized_Official_First_Name",
-    "Authorized_Official_Middle_Name",
-    "Authorized_Official_Title_or_Position",
-    "Authorized_Official_Telephone_Number",
-    "Authorized_Official_Name_Prefix_Text",
-    "Authorized_Official_Name_Suffix_Text",
-    "Authorized_Official_Credential_Text"
-FROM STAGING_TABLE_NPI
-WHERE "Authorized_Official_Last_Name" IS NOT NULL AND "Authorized_Official_Last_Name" NOT IN ('', 'N/A');
+    p.id,
+    s."NPI",
+    s."Authorized_Official_Last_Name",
+    s."Authorized_Official_First_Name",
+    s."Authorized_Official_Middle_Name",
+    s."Authorized_Official_Title_or_Position",
+    s."Authorized_Official_Telephone_Number",
+    s."Authorized_Official_Name_Prefix_Text",
+    s."Authorized_Official_Name_Suffix_Text",
+    s."Authorized_Official_Credential_Text"
+FROM STAGING_TABLE_NPI s
+JOIN providers p ON s."NPI" = p.npi
+WHERE s."Authorized_Official_Last_Name" IS NOT NULL AND s."Authorized_Official_Last_Name" NOT IN ('', 'N/A');
 
 INSERT INTO ENDPOINT_AFFILIATION(
 	AFFILIATION_PRIMARY_ADDRESS, 
