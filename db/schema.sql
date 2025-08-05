@@ -111,6 +111,25 @@ CREATE TABLE taxonomy_reference (
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+
+--# Pl File
+CREATE TABLE provider_secondary_practice_location (
+    id BIGSERIAL PRIMARY KEY,
+    npi BIGINT,
+    address_line1 VARCHAR(200),
+    address_line2 VARCHAR(200),
+    city_name VARCHAR(100),
+    state_name VARCHAR(50),
+    postal_code VARCHAR(20),
+    country_code VARCHAR(10),
+    telephone_number VARCHAR(20),
+    telephone_extension VARCHAR(10),
+    fax_number VARCHAR(20),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+
 --# Endpoints File
 CREATE TABLE IF NOT EXISTS ENDPOINT_AFFILIATION(
     AFFILIATION_ID SERIAL PRIMARY KEY,
