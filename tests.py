@@ -35,7 +35,7 @@ def test_database_count_for_endpoints():
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM ENDPOINTS")
     database_count = cursor.fetchone()[0]
-    word_count_command = ["wc", "-l", "Original_data/endpoint_pfile_20050523-20250608.csv"]
+    word_count_command = ["wc", "-l", "Original_data/endpoint_cleaned.csv"]
     csv_count_output = subprocess.run(word_count_command, capture_output=True, text=True)
     csv_count = (int(csv_count_output.stdout.split()[0]) - 1) # Subtracting 1 for header row
     assert database_count == csv_count, "Database count for endpoint does not match CSV count"
@@ -77,7 +77,7 @@ def test_database_count_for_othername():
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM PROVIDER_OTHERNAME")
     database_count = cursor.fetchone()[0]
-    word_count_command = ["wc", "-l", "Original_data/othername_pfile_20050523-20250608.csv"]
+    word_count_command = ["wc", "-l", "Original_data/othername_cleaned.csv"]
     csv_count_output = subprocess.run(word_count_command, capture_output=True, text=True)
     csv_count = (int(csv_count_output.stdout.split()[0]) - 1) # Subtracting 1 for header row
     assert database_count == csv_count, "Database count for other names does not match CSV count"
