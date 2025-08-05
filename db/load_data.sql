@@ -1,5 +1,5 @@
 INSERT INTO providers (
-    npi, entity_type_code, replacement_npi, employer_identification_number,
+    NPI, entity_type_code, replacement_npi, employer_identification_number,
     provider_organization_name, provider_last_name, provider_first_name, provider_middle_name,
     provider_name_prefix_text, provider_name_suffix_text, provider_credential_text,
     provider_other_organization_name, provider_other_organization_name_type_code,
@@ -11,27 +11,38 @@ INSERT INTO providers (
     parent_organization_tin, certification_date
 )
 SELECT
-    CASE WHEN "NPI" IN ('', 'N/A') THEN NULL ELSE "NPI"::BIGINT END,
-    "Entity_Type_Code",
-    CASE WHEN "Replacement_NPI" IN ('', 'N/A') THEN NULL ELSE "Replacement_NPI"::BIGINT END,
-    "Employer_Identification_Number_EIN",
-    "Provider_Organization_Name_Legal_Business_Name", "Provider_Last_Name_Legal_Name", "Provider_First_Name", "Provider_Middle_Name",
-    "Provider_Name_Prefix_Text", "Provider_Name_Suffix_Text", "Provider_Credential_Text",
-    "Provider_Other_Organization_Name", "Provider_Other_Organization_Name_Type_Code",
-    "Provider_Other_Last_Name", "Provider_Other_First_Name", "Provider_Other_Middle_Name",
-    "Provider_Other_Name_Prefix_Text", "Provider_Other_Name_Suffix_Text", "Provider_Other_Credential_Text",
-    "Provider_Other_Last_Name_Type_Code",
-    CASE WHEN "Provider_Enumeration_Date" IN ('', 'N/A') THEN NULL ELSE TO_DATE("Provider_Enumeration_Date", 'MM/DD/YYYY') END,
-    CASE WHEN "Last_Update_Date" IN ('', 'N/A') THEN NULL ELSE TO_DATE("Last_Update_Date", 'MM/DD/YYYY') END,
-    "NPI_Deactivation_Reason_Code",
-    CASE WHEN "NPI_Deactivation_Date" IN ('', 'N/A') THEN NULL ELSE TO_DATE("NPI_Deactivation_Date", 'MM/DD/YYYY') END,
-    CASE WHEN "NPI_Reactivation_Date" IN ('', 'N/A') THEN NULL ELSE TO_DATE("NPI_Reactivation_Date", 'MM/DD/YYYY') END,
-    CASE WHEN "Provider_Sex_Code" IN ('', 'N/A') THEN NULL ELSE LEFT("Provider_Sex_Code", 1) END,
-    CASE WHEN TRIM("Is_Sole_Proprietor") IN ('', 'N/A', 'X', ' ') THEN NULL ELSE "Is_Sole_Proprietor"::YES_OR_NO END,
-    CASE WHEN TRIM("Is_Organization_Subpart") IN ('', 'N/A', 'X', ' ') THEN NULL ELSE "Is_Organization_Subpart"::YES_OR_NO END,
-    "Parent_Organization_LBN", "Parent_Organization_TIN",
-    CASE WHEN "Certification_Date" IN ('', 'N/A') THEN NULL ELSE TO_DATE("Certification_Date", 'MM/DD/YYYY') END
-FROM STAGING_TABLE_NPI;
+    "NPI",
+    COALESCE("Entity_Type_Code", 'N/A'),
+    CASE WHEN "Replacement_NPI" IN ('', 'N/A') THEN 0 ELSE "Replacement_NPI"::BIGINT END,
+    COALESCE("Employer_Identification_Number_EIN", 'N/A'),
+    COALESCE("Provider_Organization_Name_Legal_Business_Name", 'N/A'),
+    COALESCE("Provider_Last_Name_Legal_Name", 'N/A'),
+    COALESCE("Provider_First_Name", 'N/A'),
+    COALESCE("Provider_Middle_Name", 'N/A'),
+    COALESCE("Provider_Name_Prefix_Text", 'N/A'),
+    COALESCE("Provider_Name_Suffix_Text", 'N/A'),
+    COALESCE("Provider_Credential_Text", 'N/A'),
+    COALESCE("Provider_Other_Organization_Name", 'N/A'),
+    COALESCE("Provider_Other_Organization_Name_Type_Code", 'N/A'),
+    COALESCE("Provider_Other_Last_Name", 'N/A'),
+    COALESCE("Provider_Other_First_Name", 'N/A'),
+    COALESCE("Provider_Other_Middle_Name", 'N/A'),
+    COALESCE("Provider_Other_Name_Prefix_Text", 'N/A'),
+    COALESCE("Provider_Other_Name_Suffix_Text", 'N/A'),
+    COALESCE("Provider_Other_Credential_Text", 'N/A'),
+    COALESCE("Provider_Other_Last_Name_Type_Code", 'N/A'),
+    CASE WHEN "Provider_Enumeration_Date" IN ('', 'N/A') THEN '1900-01-01'::DATE ELSE TO_DATE("Provider_Enumeration_Date", 'MM/DD/YYYY') END,
+    CASE WHEN "Last_Update_Date" IN ('', 'N/A') THEN '1900-01-01'::DATE ELSE TO_DATE("Last_Update_Date", 'MM/DD/YYYY') END,
+    COALESCE("NPI_Deactivation_Reason_Code", 'N/A'),
+    CASE WHEN "NPI_Deactivation_Date" IN ('', 'N/A') THEN '1900-01-01'::DATE ELSE TO_DATE("NPI_Deactivation_Date", 'MM/DD/YYYY') END,
+    CASE WHEN "NPI_Reactivation_Date" IN ('', 'N/A') THEN '1900-01-01'::DATE ELSE TO_DATE("NPI_Reactivation_Date", 'MM/DD/YYYY') END,
+    COALESCE(CASE WHEN "Provider_Sex_Code" IN ('', 'N/A') THEN '' ELSE LEFT("Provider_Sex_Code", 1) END, ''),
+    CASE WHEN TRIM("Is_Sole_Proprietor") IN ('', 'N/A', 'X', ' ') THEN 'X'::YES_OR_NO ELSE "Is_Sole_Proprietor"::YES_OR_NO END,
+    CASE WHEN TRIM("Is_Organization_Subpart") IN ('', 'N/A', 'X', ' ') THEN 'X'::YES_OR_NO ELSE "Is_Organization_Subpart"::YES_OR_NO END,
+    COALESCE("Parent_Organization_LBN", 'N/A'),
+    COALESCE("Parent_Organization_TIN", 'N/A'),
+    CASE WHEN "Certification_Date" IN ('', 'N/A') THEN '1900-01-01'::DATE ELSE TO_DATE("Certification_Date", 'MM/DD/YYYY') END
+FROM STAGING_TABLE_NPI s;
 
 -- ======================
 -- Insert into provider_taxonomy (1-15)
@@ -153,7 +164,7 @@ FROM (
         (50, "Other_Provider_Identifier_50", "Other_Provider_Identifier_Type_Code_50", "Other_Provider_Identifier_State_50", "Other_Provider_Identifier_Issuer_50")
     ) AS vals(i, id, type_code, state, issuer)
 ) t
-JOIN providers p ON t.npi = p.npi
+JOIN providers p ON t.NPI = p.NPI
 WHERE t.other_provider_identifier IS NOT NULL AND t.other_provider_identifier NOT IN ('', 'N/A');
 
 -- ======================
@@ -174,7 +185,7 @@ SELECT
     s."Provider_Business_Mailing_Address_Telephone_Number",
     s."Provider_Business_Mailing_Address_Fax_Number"
 FROM STAGING_TABLE_NPI s
-JOIN providers p ON s."NPI" = p.npi
+JOIN providers p ON s."NPI" = p.NPI
 WHERE s."Provider_First_Line_Business_Mailing_Address" IS NOT NULL AND s."Provider_First_Line_Business_Mailing_Address" NOT IN ('', 'N/A');
 
 -- ======================
@@ -195,7 +206,7 @@ SELECT
     s."Provider_Business_Practice_Location_Address_Telephone_Number",
     s."Provider_Business_Practice_Location_Address_Fax_Number"
 FROM STAGING_TABLE_NPI s
-JOIN providers p ON s."NPI" = p.npi
+JOIN providers p ON s."NPI" = p.NPI
 WHERE s."Provider_First_Line_Business_Practice_Location_Address" IS NOT NULL AND s."Provider_First_Line_Business_Practice_Location_Address" NOT IN ('', 'N/A');
 
 -- ======================
@@ -217,7 +228,7 @@ SELECT
     s."Authorized_Official_Name_Suffix_Text",
     s."Authorized_Official_Credential_Text"
 FROM STAGING_TABLE_NPI s
-JOIN providers p ON s."NPI" = p.npi
+JOIN providers p ON s."NPI" = p.NPI
 WHERE s."Authorized_Official_Last_Name" IS NOT NULL AND s."Authorized_Official_Last_Name" NOT IN ('', 'N/A');
 
 INSERT INTO ENDPOINT_AFFILIATION(
@@ -277,7 +288,7 @@ COALESCE(st.AFFILIATION_ADDRESS_COUNTRY, 'XX') = e.AFFILIATION_ADDRESS_COUNTRY A
 COALESCE(st.AFFILIATION_ADDRESS_POSTAL_CODE, 'N/A') = e.AFFILIATION_ADDRESS_POSTAL_CODE;
 
 INSERT INTO provider_othername (npi, other_name, name_type_code)
-SELECT DISTINCT
+SELECT
     npi,
     provider_other_organization_name,
     provider_other_organization_name_type_code
@@ -285,7 +296,7 @@ FROM staging_othername_pfile
 WHERE
     npi IS NOT NULL AND npi <> ''
     AND provider_other_organization_name IS NOT NULL AND provider_other_organization_name <> ''
-    AND provider_other_organization_name_type_code IN ('3', '4', '5');
+    AND provider_other_organization_name_type_code IN ('3', '4', '5','6');
 
 --# Drop all staging tables once finished.
 DROP TABLE STAGING_TABLE_ENDPOINTS;
