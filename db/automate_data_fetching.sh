@@ -67,7 +67,8 @@ python "$current_directory/db_staging.py" -i "$pl_csv_filepath" -o "pl_cleaned.c
 psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\COPY STAGING_TABLE_ENDPOINTS FROM '$current_directory/Original_data/endpoint_cleaned.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '\"')"
 psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\COPY STAGING_TABLE_NPI FROM '$current_directory/Original_data/npidata_cleaned.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '\"')"
 psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\COPY STAGING_OTHERNAME_PFILE FROM '$current_directory/Original_data/othername_cleaned.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '\"')"
-psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\COPY provider_secondary_practice_location (npi, address_line1, address_line2, city_name, state_name, postal_code, country_code, telephone_number, telephone_extension, fax_number) FROM '$current_directory/Original_data/pl_pfile_20050523-20250608.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '"')
+psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\COPY provider_secondary_practice_location (npi, address_line1, address_line2, city_name, state_name, postal_code, country_code, telephone_number, telephone_extension, fax_number) FROM '$current_directory/Original_data/pl_cleaned.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '\"')"
+
 # Perform data loading
 psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -f "$current_directory/db/load_data.sql"
 
