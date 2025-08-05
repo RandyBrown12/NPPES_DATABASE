@@ -1,9 +1,9 @@
 --# Tables
-CREATE TYPE YES_OR_NO AS ENUM ('Y','N','X');
+CREATE TYPE IF NOT EXISTS YES_OR_NO AS ENUM ('Y','N','X');
 
 --# Providers File
 -- 1. Providers table (npi as PK)
-CREATE TABLE providers (
+CREATE TABLE IF NOT EXISTS providers (
     id BIGSERIAL PRIMARY KEY,
     NPI BIGINT UNIQUE NOT NULL,
     entity_type_code VARCHAR(3) NOT NULL,
@@ -41,7 +41,7 @@ CREATE TABLE providers (
 );
 
 -- 2. provider_taxonomy table 
-CREATE TABLE provider_taxonomy (
+CREATE TABLE IF NOT EXISTS provider_taxonomy (
     id SERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
     taxonomy_order INT NOT NULL, -- 1 to 15, corresponds to _1..._15
@@ -55,7 +55,7 @@ CREATE TABLE provider_taxonomy (
 );
 
 -- 3. provider_address table 
-CREATE TABLE provider_address (
+CREATE TABLE IF NOT EXISTS provider_address (
     id SERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
     address_type VARCHAR(30) NOT NULL, -- e.g., 'mailing', 'practice'
@@ -72,7 +72,7 @@ CREATE TABLE provider_address (
 );
 
 -- 4. provider_other_identifier table 
-CREATE TABLE provider_other_identifier (
+CREATE TABLE IF NOT EXISTS provider_other_identifier (
     id SERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
     identifier_order INT NOT NULL, -- 1 to 50, corresponds to _1..._50
@@ -85,7 +85,7 @@ CREATE TABLE provider_other_identifier (
 );
 
 -- 5. provider_authorized_official (npi as PK)
-CREATE TABLE provider_authorized_official (
+CREATE TABLE IF NOT EXISTS provider_authorized_official (
     id BIGSERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
     NPI BIGINT NOT NULL,
@@ -102,7 +102,7 @@ CREATE TABLE provider_authorized_official (
 );
 
 -- 6. taxonomy_reference (taxonomy_code as PK)
-CREATE TABLE taxonomy_reference (
+CREATE TABLE IF NOT EXISTS taxonomy_reference (
     id BIGSERIAL PRIMARY KEY,
     taxonomy_code VARCHAR(20) NOT NULL,
     specialization VARCHAR(255) NOT NULL,
@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS STAGING_TABLE_ENDPOINTS(
     AFFILIATION_ADDRESS_POSTAL_CODE VARCHAR
 );
 
-CREATE TABLE STAGING_TABLE_NPI (
+CREATE TABLE IF NOT EXISTS STAGING_TABLE_NPI (
     "NPI" BIGINT,
     "Entity_Type_Code" TEXT,
     "Replacement_NPI" TEXT,

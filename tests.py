@@ -33,7 +33,7 @@ def test_database_count_for_endpoints():
         port=info["port"]
     )
     cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM ENDPOINTS")
+    cursor.execute("SELECT COUNT(*) FROM ENDPOINTS WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE);")
     database_count = cursor.fetchone()[0]
     word_count_command = ["wc", "-l", "Original_data/endpoint_cleaned.csv"]
     csv_count_output = subprocess.run(word_count_command, capture_output=True, text=True)
@@ -54,7 +54,7 @@ def test_database_count_for_npi():
         port=info["port"]
     )
     cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM PROVIDERS")
+    cursor.execute("SELECT COUNT(*) FROM PROVIDERS WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE);")
     database_count = cursor.fetchone()[0]
     word_count_command = ["wc", "-l", "Original_data/npidata_cleaned.csv"]
     csv_count_output = subprocess.run(word_count_command, capture_output=True, text=True)
@@ -75,7 +75,7 @@ def test_database_count_for_othername():
         port=info["port"]
     )
     cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM PROVIDER_OTHERNAME")
+    cursor.execute("SELECT COUNT(*) FROM PROVIDER_OTHERNAME WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE);")
     database_count = cursor.fetchone()[0]
     word_count_command = ["wc", "-l", "Original_data/othername_cleaned.csv"]
     csv_count_output = subprocess.run(word_count_command, capture_output=True, text=True)

@@ -70,3 +70,12 @@ psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\CO
 psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\COPY provider_secondary_practice_location (npi, address_line1, address_line2, city_name, state_name, postal_code, country_code, telephone_number, telephone_extension, fax_number) FROM '$current_directory/Original_data/pl_pfile_20050523-20250608.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '"')
 # Perform data loading
 psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -f "$current_directory/db/load_data.sql"
+
+# Validate all tests are correct
+if pytest tests.py; then
+    echo "✅ All tests passed!"
+else
+    echo "❌ One or more tests have not been passed"
+fi
+
+rm -rf "$current_directory/Original_data"
