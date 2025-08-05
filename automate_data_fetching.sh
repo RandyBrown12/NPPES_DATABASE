@@ -73,7 +73,7 @@ psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\CO
 psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -f "$current_directory/db/load_data.sql"
 
 # Validate all tests are correct
-if pytest tests.py; then
+if pytest "$current_directory/tests.py"; then
     echo "✅ All tests passed!"
 else
     echo "❌ One or more tests have not been passed"
