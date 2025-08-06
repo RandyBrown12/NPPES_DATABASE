@@ -1,8 +1,8 @@
---# Table
+--# Tables
 CREATE TYPE YES_OR_NO AS ENUM ('Y','N','X');
 
 --# Providers File
-
+-- 1. Providers table 
 CREATE TABLE IF NOT EXISTS providers (
     id BIGSERIAL PRIMARY KEY,
     NPI BIGINT UNIQUE NOT NULL,
@@ -43,10 +43,11 @@ CREATE TABLE IF NOT EXISTS providers (
 -- npi is already unique, so index is created by UNIQUE, but for clarity:
 CREATE INDEX IF NOT EXISTS idx_providers_NPI ON providers(NPI);
 
+-- 2. provider_taxonomy table
 CREATE TABLE IF NOT EXISTS provider_taxonomy (
     id SERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
-    taxonomy_order INT NOT NULL,
+    taxonomy_order INT NOT NULL,-- 1 to 15, corresponds to _1..._15
     taxonomy_code VARCHAR(20) NOT NULL,
     license_number VARCHAR(50) NOT NULL,
     license_number_state_code VARCHAR(5) NOT NULL,
@@ -59,10 +60,11 @@ CREATE TABLE IF NOT EXISTS provider_taxonomy (
 CREATE INDEX IF NOT EXISTS idx_provider_taxonomy_provider_id ON provider_taxonomy(provider_id);
 CREATE INDEX IF NOT EXISTS idx_provider_taxonomy_taxonomy_code ON provider_taxonomy(taxonomy_code);
 
+-- 3. provider_address table 
 CREATE TABLE IF NOT EXISTS provider_address (
     id SERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
-    address_type VARCHAR(30) NOT NULL,
+    address_type VARCHAR(30) NOT NULL,-- e.g., 'mailing', 'practice'
     first_line VARCHAR(200) NOT NULL,
     second_line VARCHAR(200) NOT NULL,
     city VARCHAR(100) NOT NULL,
@@ -78,10 +80,11 @@ CREATE TABLE IF NOT EXISTS provider_address (
 CREATE INDEX IF NOT EXISTS idx_provider_address_provider_id ON provider_address(provider_id);
 CREATE INDEX IF NOT EXISTS idx_provider_address_postal_code ON provider_address(postal_code);
 
+-- 4. provider_other_identifier table 
 CREATE TABLE IF NOT EXISTS provider_other_identifier (
     id SERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
-    identifier_order INT NOT NULL,
+    identifier_order INT NOT NULL,-- 1 to 50, corresponds to _1..._50
     other_provider_identifier VARCHAR(1000) NOT NULL,
     type_code VARCHAR(10) NOT NULL,
     state VARCHAR(5) NOT NULL,
@@ -92,6 +95,7 @@ CREATE TABLE IF NOT EXISTS provider_other_identifier (
 
 CREATE INDEX IF NOT EXISTS idx_provider_other_identifier_provider_id ON provider_other_identifier(provider_id);
 
+-- 5. provider_authorized_official 
 CREATE TABLE IF NOT EXISTS provider_authorized_official (
     id BIGSERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
@@ -110,6 +114,7 @@ CREATE TABLE IF NOT EXISTS provider_authorized_official (
 
 CREATE INDEX IF NOT EXISTS idx_provider_authorized_official_provider_id ON provider_authorized_official(provider_id);
 
+-- 6. taxonomy_reference 
 CREATE TABLE IF NOT EXISTS taxonomy_reference (
     id BIGSERIAL PRIMARY KEY,
     taxonomy_code VARCHAR(20) NOT NULL,
@@ -184,6 +189,7 @@ CREATE INDEX IF NOT EXISTS idx_endpoints_endpoint_type ON ENDPOINTS(ENDPOINT_TYP
 
 --# Othername File
 
+-- Create final cleaned table
 CREATE TABLE IF NOT EXISTS provider_othername (
     id SERIAL PRIMARY KEY,
     npi VARCHAR(10) NOT NULL,
