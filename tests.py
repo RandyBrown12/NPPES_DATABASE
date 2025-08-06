@@ -81,3 +81,24 @@ def test_database_count_for_othername():
     csv_count_output = subprocess.run(word_count_command, capture_output=True, text=True)
     csv_count = (int(csv_count_output.stdout.split()[0]) - 1) # Subtracting 1 for header row
     assert database_count == csv_count, "Database count for other names does not match CSV count"
+
+def test_database_count_for_pl():
+    """
+    Verify that the count of records in the provider_secondary_practice_location table matches the count in the CSV file.
+    """
+    with open('info.json', 'r') as file:
+        info = json.load(file)
+    conn = psycopg2.connect(
+        dbname=info["database"],
+        user=info["user"],
+        password=info["password"],
+        host=info["host"],
+        port=info["port"]
+    )
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM provider_secondary_practice_location WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE);")
+    database_count = cursor.fetchone()[0]
+    word_count_command = ["wc", "-l", "Original_data/pl_cleaned.csv"]
+    csv_count_output = subprocess.run(word_count_command, capture_output=True, text=True)
+    csv_count = (int(csv_count_output.stdout.split()[0]) - 1) # Subtracting 1 for header row
+    assert database_count == csv_count, "Database count for provider_secondary_practice_location does not match CSV count"
