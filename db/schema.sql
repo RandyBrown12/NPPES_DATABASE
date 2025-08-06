@@ -1,5 +1,5 @@
 --# Tables
-CREATE TYPE IF NOT EXISTS YES_OR_NO AS ENUM ('Y','N','X');
+CREATE TYPE YES_OR_NO AS ENUM ('Y','N','X');
 
 --# Providers File
 -- 1. Providers table (npi as PK)
