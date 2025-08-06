@@ -47,7 +47,7 @@ CREATE INDEX IF NOT EXISTS idx_providers_NPI ON providers(NPI);
 CREATE TABLE IF NOT EXISTS provider_taxonomy (
     id SERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
-    taxonomy_order INT NOT NULL,-- 1 to 15, corresponds to _1..._15
+    taxonomy_order INT NOT NULL, -- 1 to 15, corresponds to _1..._15
     taxonomy_code VARCHAR(20) NOT NULL,
     license_number VARCHAR(50) NOT NULL,
     license_number_state_code VARCHAR(5) NOT NULL,
@@ -64,7 +64,7 @@ CREATE INDEX IF NOT EXISTS idx_provider_taxonomy_taxonomy_code ON provider_taxon
 CREATE TABLE IF NOT EXISTS provider_address (
     id SERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
-    address_type VARCHAR(30) NOT NULL,-- e.g., 'mailing', 'practice'
+    address_type VARCHAR(30) NOT NULL, -- e.g., 'mailing', 'practice'
     first_line VARCHAR(200) NOT NULL,
     second_line VARCHAR(200) NOT NULL,
     city VARCHAR(100) NOT NULL,
@@ -84,7 +84,7 @@ CREATE INDEX IF NOT EXISTS idx_provider_address_postal_code ON provider_address(
 CREATE TABLE IF NOT EXISTS provider_other_identifier (
     id SERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
-    identifier_order INT NOT NULL,-- 1 to 50, corresponds to _1..._50
+    identifier_order INT NOT NULL, -- 1 to 50, corresponds to _1..._50
     other_provider_identifier VARCHAR(1000) NOT NULL,
     type_code VARCHAR(10) NOT NULL,
     state VARCHAR(5) NOT NULL,
