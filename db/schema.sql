@@ -1,11 +1,10 @@
---# Tables
+-- ENUM
 CREATE TYPE YES_OR_NO AS ENUM ('Y','N','X');
 
---# Providers File
--- 1. Providers table (npi as PK)
+-- 1. Providers table
 CREATE TABLE IF NOT EXISTS providers (
     id BIGSERIAL PRIMARY KEY,
-    NPI BIGINT UNIQUE NOT NULL,
+    npi BIGINT UNIQUE NOT NULL,
     entity_type_code VARCHAR(3) NOT NULL,
     replacement_npi BIGINT NOT NULL,
     employer_identification_number VARCHAR(20) NOT NULL,
@@ -40,11 +39,14 @@ CREATE TABLE IF NOT EXISTS providers (
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- 2. provider_taxonomy table 
+-- (Optional, UNIQUE constraint already creates an index on npi, but you can be explicit if you wish)
+CREATE INDEX IF NOT EXISTS idx_providers_npi ON providers(npi);
+
+-- 2. provider_taxonomy
 CREATE TABLE IF NOT EXISTS provider_taxonomy (
     id SERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
-    taxonomy_order INT NOT NULL, -- 1 to 15, corresponds to _1..._15
+    taxonomy_order INT NOT NULL,
     taxonomy_code VARCHAR(20) NOT NULL,
     license_number VARCHAR(50) NOT NULL,
     license_number_state_code VARCHAR(5) NOT NULL,
@@ -54,11 +56,14 @@ CREATE TABLE IF NOT EXISTS provider_taxonomy (
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- 3. provider_address table 
+CREATE INDEX IF NOT EXISTS idx_provider_taxonomy_provider_id ON provider_taxonomy(provider_id);
+CREATE INDEX IF NOT EXISTS idx_provider_taxonomy_code ON provider_taxonomy(taxonomy_code);
+
+-- 3. provider_address
 CREATE TABLE IF NOT EXISTS provider_address (
     id SERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
-    address_type VARCHAR(30) NOT NULL, -- e.g., 'mailing', 'practice'
+    address_type VARCHAR(30) NOT NULL,
     first_line VARCHAR(200) NOT NULL,
     second_line VARCHAR(200) NOT NULL,
     city VARCHAR(100) NOT NULL,
@@ -71,11 +76,14 @@ CREATE TABLE IF NOT EXISTS provider_address (
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- 4. provider_other_identifier table 
+CREATE INDEX IF NOT EXISTS idx_provider_address_provider_id ON provider_address(provider_id);
+CREATE INDEX IF NOT EXISTS idx_provider_address_postal_code ON provider_address(postal_code);
+
+-- 4. provider_other_identifier
 CREATE TABLE IF NOT EXISTS provider_other_identifier (
     id SERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
-    identifier_order INT NOT NULL, -- 1 to 50, corresponds to _1..._50
+    identifier_order INT NOT NULL,
     other_provider_identifier VARCHAR(1000) NOT NULL,
     type_code VARCHAR(10) NOT NULL,
     state VARCHAR(5) NOT NULL,
@@ -84,11 +92,13 @@ CREATE TABLE IF NOT EXISTS provider_other_identifier (
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- 5. provider_authorized_official (npi as PK)
+CREATE INDEX IF NOT EXISTS idx_provider_other_identifier_provider_id ON provider_other_identifier(provider_id);
+
+-- 5. provider_authorized_official
 CREATE TABLE IF NOT EXISTS provider_authorized_official (
     id BIGSERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
-    NPI BIGINT NOT NULL,
+    npi BIGINT NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     first_name VARCHAR(100) NOT NULL,
     middle_name VARCHAR(100) NOT NULL,
@@ -101,7 +111,9 @@ CREATE TABLE IF NOT EXISTS provider_authorized_official (
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- 6. taxonomy_reference (taxonomy_code as PK)
+CREATE INDEX IF NOT EXISTS idx_provider_authorized_official_provider_id ON provider_authorized_official(provider_id);
+
+-- 6. taxonomy_reference
 CREATE TABLE IF NOT EXISTS taxonomy_reference (
     id BIGSERIAL PRIMARY KEY,
     taxonomy_code VARCHAR(20) NOT NULL,
@@ -111,9 +123,10 @@ CREATE TABLE IF NOT EXISTS taxonomy_reference (
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE INDEX IF NOT EXISTS idx_taxonomy_reference_code ON taxonomy_reference(taxonomy_code);
 
---# Pl File
-CREATE TABLE provider_secondary_practice_location (
+-- PL File
+CREATE TABLE IF NOT EXISTS provider_secondary_practice_location (
     id BIGSERIAL PRIMARY KEY,
     npi BIGINT,
     address_line1 VARCHAR(200),
@@ -129,53 +142,65 @@ CREATE TABLE provider_secondary_practice_location (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE INDEX IF NOT EXISTS idx_secondary_practice_location_npi ON provider_secondary_practice_location(npi);
 
---# Endpoints File
-CREATE TABLE IF NOT EXISTS ENDPOINT_AFFILIATION(
-    AFFILIATION_ID SERIAL PRIMARY KEY,
-    AFFILIATION_PRIMARY_ADDRESS VARCHAR(55) NOT NULL DEFAULT 'N/A',
-    AFFILIATION_SECONDARY_ADDRESS VARCHAR(55) NOT NULL DEFAULT 'N/A',
-    AFFILIATION_ADDRESS_CITY VARCHAR(40) NOT NULL DEFAULT 'N/A',
-    AFFILIATION_ADDRESS_STATE VARCHAR(40) NOT NULL DEFAULT 'N/A',
-    AFFILIATION_ADDRESS_COUNTRY VARCHAR(3) NOT NULL DEFAULT 'N/A',
-    AFFILIATION_ADDRESS_POSTAL_CODE VARCHAR(15) NOT NULL DEFAULT '000000000',
-    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
+--# Endpoints & Othername Section (with Indexes)
+
+-- Endpoint Affiliation Table
+CREATE TABLE IF NOT EXISTS endpoint_affiliation (
+    affiliation_id SERIAL PRIMARY KEY,
+    affiliation_primary_address VARCHAR(55) NOT NULL DEFAULT 'N/A',
+    affiliation_secondary_address VARCHAR(55) NOT NULL DEFAULT 'N/A',
+    affiliation_address_city VARCHAR(40) NOT NULL DEFAULT 'N/A',
+    affiliation_address_state VARCHAR(40) NOT NULL DEFAULT 'N/A',
+    affiliation_address_country VARCHAR(3) NOT NULL DEFAULT 'N/A',
+    affiliation_address_postal_code VARCHAR(15) NOT NULL DEFAULT '000000000',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS ENDPOINTS(
-    ENDPOINT_ID SERIAL PRIMARY KEY,
-    NPI BIGINT NOT NULL REFERENCES providers(NPI),
-    ENDPOINT_TYPE VARCHAR(50) NOT NULL,
-    ENDPOINT_TYPE_DESCRIPTION VARCHAR(50) NOT NULL DEFAULT 'N/A',
-    ENDPOINT VARCHAR(1000) NOT NULL DEFAULT 'N/A',
-    AFFILIATION YES_OR_NO NOT NULL DEFAULT 'X',
-    AFFILIATION_ID INT NOT NULL,
-    ENDPOINT_DESCRIPTION VARCHAR(1000) NOT NULL DEFAULT 'N/A',
-    BUSINESS_NAME VARCHAR(100) NOT NULL DEFAULT 'N/A',
-    USE_CODE VARCHAR(25) NOT NULL DEFAULT 'N/A',
-    USE_DESCRIPTION VARCHAR(100) NOT NULL DEFAULT 'N/A',
-    OTHER_USE_DESCRIPTION VARCHAR(200) NOT NULL DEFAULT 'N/A',
-    CONTENT_TYPE VARCHAR(25) NOT NULL DEFAULT 'N/A',
-    CONTENT_DESCRIPTION VARCHAR(100) NOT NULL DEFAULT 'N/A',
-    OTHER_CONTENT_DESCRIPTION VARCHAR(200) NOT NULL DEFAULT 'N/A',
-    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
-    FOREIGN KEY (AFFILIATION_ID) REFERENCES ENDPOINT_AFFILIATION(AFFILIATION_ID)
+-- Index on city, state for fast lookups (optional)
+CREATE INDEX IF NOT EXISTS idx_affiliation_city_state ON endpoint_affiliation(affiliation_address_city, affiliation_address_state);
+
+-- Endpoints Table
+CREATE TABLE IF NOT EXISTS endpoints (
+    endpoint_id SERIAL PRIMARY KEY,
+    npi BIGINT NOT NULL REFERENCES providers(npi),
+    endpoint_type VARCHAR(50) NOT NULL,
+    endpoint_type_description VARCHAR(50) NOT NULL DEFAULT 'N/A',
+    endpoint VARCHAR(1000) NOT NULL DEFAULT 'N/A',
+    affiliation YES_OR_NO NOT NULL DEFAULT 'X',
+    affiliation_id INT NOT NULL REFERENCES endpoint_affiliation(affiliation_id),
+    endpoint_description VARCHAR(1000) NOT NULL DEFAULT 'N/A',
+    business_name VARCHAR(100) NOT NULL DEFAULT 'N/A',
+    use_code VARCHAR(25) NOT NULL DEFAULT 'N/A',
+    use_description VARCHAR(100) NOT NULL DEFAULT 'N/A',
+    other_use_description VARCHAR(200) NOT NULL DEFAULT 'N/A',
+    content_type VARCHAR(25) NOT NULL DEFAULT 'N/A',
+    content_description VARCHAR(100) NOT NULL DEFAULT 'N/A',
+    other_content_description VARCHAR(200) NOT NULL DEFAULT 'N/A',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
---# Othername File
+-- Indexes for efficient querying
+CREATE INDEX IF NOT EXISTS idx_endpoints_npi ON endpoints(npi);
+CREATE INDEX IF NOT EXISTS idx_endpoints_affiliation_id ON endpoints(affiliation_id);
+CREATE INDEX IF NOT EXISTS idx_endpoints_type ON endpoints(endpoint_type);
 
--- Create final cleaned table
+-- Othername Table
 CREATE TABLE IF NOT EXISTS provider_othername (
     id SERIAL PRIMARY KEY,
     npi VARCHAR(10) NOT NULL,
     other_name VARCHAR(255) NOT NULL,
     name_type_code CHAR(1) NOT NULL,
-    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (npi, other_name, name_type_code)
 );
+
+CREATE INDEX IF NOT EXISTS idx_othername_npi ON provider_othername(npi);
+CREATE INDEX IF NOT EXISTS idx_othername_name_type_code ON provider_othername(name_type_code);
 
 --# STAGING TABLES:
 
