@@ -26,7 +26,7 @@ The Purpose of this project is to perform ETL (Extract, Transfer, and Load) from
     brew install make
     ```
 
-** The program also needs an info.json file for the database, copy the info_template.json to info.json and put in the information for your database.
+**The program also needs an info.json file for the database, copy the info_template.json to info.json and put in the information for your database.**
 
 ## Makefile
 The project uses a Makefile to simplify common operations. Here are the available commands:
