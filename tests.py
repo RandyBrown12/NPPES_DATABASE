@@ -1,13 +1,16 @@
 import psycopg2
 import json
 import subprocess
+import os
 
+os_path = os.path.dirname(os.path.abspath(__file__))
 def test_database_connection():
     """
     Verify that a database connection can be established from the info.json file.
     This test is essential to be used for all other tests that require database access.
     """
-    with open('info.json', 'r') as file:
+    info_path = os.path.join(os_path, 'info.json')
+    with open(info_path, 'r') as file:
         info = json.load(file)
     conn = psycopg2.connect(
         dbname=info["database"],
@@ -23,7 +26,8 @@ def test_database_count_for_endpoints():
     """
     Verify that the count of records in the ENDPOINTS table matches the count in the CSV file.
     """
-    with open('info.json', 'r') as file:
+    info_path = os.path.join(os_path, 'info.json')
+    with open(info_path, 'r') as file:
         info = json.load(file)
     conn = psycopg2.connect(
         dbname=info["database"],
@@ -44,7 +48,8 @@ def test_database_count_for_npi():
     """
     Verify that the count of records in the NPI table matches the count in the CSV file.
     """
-    with open('info.json', 'r') as file:
+    info_path = os.path.join(os_path, 'info.json')
+    with open(info_path, 'r') as file:
         info = json.load(file)
     conn = psycopg2.connect(
         dbname=info["database"],
@@ -65,7 +70,8 @@ def test_database_count_for_othername():
     """
     Verify that the count of records in the PROVIDER_OTHERNAME table matches the count in the CSV file.
     """
-    with open('info.json', 'r') as file:
+    info_path = os.path.join(os_path, 'info.json')
+    with open(info_path, 'r') as file:
         info = json.load(file)
     conn = psycopg2.connect(
         dbname=info["database"],
@@ -86,7 +92,8 @@ def test_database_count_for_pl():
     """
     Verify that the count of records in the provider_secondary_practice_location table matches the count in the CSV file.
     """
-    with open('info.json', 'r') as file:
+    info_path = os.path.join(os_path, 'info.json')
+    with open(info_path, 'r') as file:
         info = json.load(file)
     conn = psycopg2.connect(
         dbname=info["database"],
