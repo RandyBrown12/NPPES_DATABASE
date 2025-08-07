@@ -36,3 +36,13 @@ clear_db:
 
 run:
 	"$(current_directory)/automate_data_fetching.sh"
+
+help:
+	@echo "Command: make [target] [..target] "
+	@echo "Available targets:";
+	@echo " check_packages - Verify all packages are installed on your computer before proceeding "
+	@echo " test - Verify all packages are installed on your computer before proceeding "
+	@echo " clean_NPPES_data - Clear the Original_data directory when the run command is finished "
+	@echo " clean_db - Drop all the tables and types in the database "
+	@echo " run - Run the main script which performs ETL (Extract, Transfer, Load) into the database "
+
