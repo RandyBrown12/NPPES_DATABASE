@@ -1,12 +1,7 @@
 # Table of Contents
 - [Introduction](#nppes-database-from-emrts)
-- [Fetching the data](#fetching-the-nppes-data-using-dbtestsh)
-- [Pre-loading the data](#pre-loading-the-data)
-  - [Through pgAdmin4](#pre-loading-the-data-through-pgadmin4)
-  - [Through psql](#pre-loading-the-data-through-psql)
-- [Loading the data](#loading-the-data)
-  - [Through pgAdmin4](#loading-the-data-through-pgadmin4)
-  - [Through psql](#loading-the-data-through-psql)
+- [Prerequisites](#prerequisites)
+- [Makefile](#makefile)
 - [Running pgAdmin4 server](#running-pgadmin4-server) *(optional for this project)*
   - [Setting up a postgres Web Application](#setting-up-a-postgres-web-application)
   - [Running the application](#running-the-application)
@@ -15,55 +10,33 @@
 # NPPES Database from EMRTS
 The Purpose of this project is to perform ETL (Extract, Transfer, and Load) from the NPPES zip file to a Postgres database.
 
-## Fetching the NPPES data using db/test.sh.
-This file is to be run aloneside a crontab to automate this every month.
-Make sure an Original_data directory is in the repository directory.
-Command: `./db/test.sh`
+## Prerequisites:
+* Windows:
+  - Install WSL (Windows Subsystem for Linux):
+  > Note: In Windows, you must be inside the WSL terminal for this project (Type `wsl` in the terminal to be inside of it)
+    1. Open PowerShell as Administrator and run: `wsl --install`
+    2. Restart your computer when prompted
+    3. When your computer restarts, WSL will continue installation and ask you to create a username and password for Ubuntu
+    4. After setup completes, you'll have Ubuntu running on Windows.
+  - Make inside WSL
+    1. Install using this command: `sudo apt install make`
+* macOS:
+  - Install make using Homebrew (install Homebrew first if not installed):
+    ```bash
+    brew install make
+    ```
 
-## Pre-loading the data
+** The program also needs an info.json file for the database, copy the info_template.json to info.json and put in the information for your database.
 
-### Pre-loading the data through pgAdmin4
-Access your Database through pgAdmin4 and use the query tool.
-Once inside, copy the contents of schema.sql into the query tool and execute the script.
+## Makefile
+The project uses a Makefile to simplify common operations. Here are the available commands:
 
-### Pre-loading the data through psql
-Run this command: `psql -U <username> -d <database> -f db/schema.sql`
-
-## Loading the data
-
-### Loading the data through pgAdmin4
-Once inside, go into the tables that start with staging and select Import/Export Data.
-> Note: Make sure values from csv file (Ex. ,"",) are changed to have nothing (Ex. ,,). This can be done by just saving through excel or
-        you can use this command `sed 's/""//g' endpoint_pfile_XXXXXXXX-XXXXXXXX.csv > endpoint_cleaned.csv` but note that "" values in your data will be replaced.
-
-> Note: For STAGING_TABLE_NPI, You must run db_staging.py by doing `python db_staging.py` and change input_csv variable inside the file to the path of npidata_pfile_XXXXXXXX-XXXXXXXX.csv
-
-**The settings will be as followed:**
-
-General
-- Import
-- Filename: <file_to_endpoint_pfile_csv>
-- Format: csv
-
-Options
-- Header ON (tab is blue)
-- Delimiter: ,
-- Quote: "
-- Escape: 
-- NULL strings: 
-
-Once you have copied all the data into the staging tables, you can use the query tool to run load_data.sql
-
-### Loading the data through psql
-
-Enter credientials to access the database and copy all the staging tables from the correct NPPES csv file not containing fileheader.
-
-Ex: ```\COPY STAGING_TABLE_<NAME> FROM '</path/to/.csv>' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '"', NULL '');
-> Note: For STAGING_TABLE_NPI, You must run db_staging.py by doing `python db_staging.py` and change input_csv variable inside the file to the path of npidata_pfile_XXXXXXXX-XXXXXXXX.csv
-
-Once you have copied all the data into the staging tables, you can perform the command to run load_data.sql `psql -U <username> -d <database> -f db/load_data.sql`
-
-## Running pgAdmin4 server
+* `make check_packages` - Verifies all required dependencies are installed before running the program
+* `make test` - Run all tests once run is completed
+* `make clear_NPPES_data` - Clear Original_data directory once run is finished
+* `make clear_db` - Clear all tables and types from the current database
+* `make run` - Run the shell script automate_data_fetching.sh which performs ETL (Extract, Transfer, and Load)
+* `make help` - Runs all commands for the make file
 
 ### Setting up a Postgres web application
 1. Add a virtual environment
