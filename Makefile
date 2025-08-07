@@ -33,3 +33,6 @@ clear_db:
 	db_host=$$(jq -r '.host' $$info_json_location); \
 	db_port=$$(jq -r '.port' $$info_json_location); \
 	psql "postgresql://$$db_username:$$db_password@$$db_host:$$db_port/$$db_name" -f "$(current_directory)/db/drop_tables.sql"
+
+run:
+	"$(current_directory)/automate_data_fetching.sh"
