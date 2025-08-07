@@ -2,7 +2,7 @@
 CREATE TYPE YES_OR_NO AS ENUM ('Y','N','X');
 
 --# Providers File
--- 1. Providers table (npi as PK)
+-- 1. Providers table 
 CREATE TABLE IF NOT EXISTS providers (
     id BIGSERIAL PRIMARY KEY,
     NPI BIGINT UNIQUE NOT NULL,
@@ -40,7 +40,10 @@ CREATE TABLE IF NOT EXISTS providers (
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- 2. provider_taxonomy table 
+-- npi is already unique, so index is created by UNIQUE, but for clarity:
+CREATE INDEX IF NOT EXISTS idx_providers_NPI ON providers(NPI);
+
+-- 2. provider_taxonomy table
 CREATE TABLE IF NOT EXISTS provider_taxonomy (
     id SERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
@@ -53,6 +56,9 @@ CREATE TABLE IF NOT EXISTS provider_taxonomy (
     CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE INDEX IF NOT EXISTS idx_provider_taxonomy_provider_id ON provider_taxonomy(provider_id);
+CREATE INDEX IF NOT EXISTS idx_provider_taxonomy_taxonomy_code ON provider_taxonomy(taxonomy_code);
 
 -- 3. provider_address table 
 CREATE TABLE IF NOT EXISTS provider_address (
@@ -71,6 +77,9 @@ CREATE TABLE IF NOT EXISTS provider_address (
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE INDEX IF NOT EXISTS idx_provider_address_provider_id ON provider_address(provider_id);
+CREATE INDEX IF NOT EXISTS idx_provider_address_postal_code ON provider_address(postal_code);
+
 -- 4. provider_other_identifier table 
 CREATE TABLE IF NOT EXISTS provider_other_identifier (
     id SERIAL PRIMARY KEY,
@@ -84,7 +93,9 @@ CREATE TABLE IF NOT EXISTS provider_other_identifier (
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- 5. provider_authorized_official (npi as PK)
+CREATE INDEX IF NOT EXISTS idx_provider_other_identifier_provider_id ON provider_other_identifier(provider_id);
+
+-- 5. provider_authorized_official 
 CREATE TABLE IF NOT EXISTS provider_authorized_official (
     id BIGSERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
@@ -101,7 +112,9 @@ CREATE TABLE IF NOT EXISTS provider_authorized_official (
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- 6. taxonomy_reference (taxonomy_code as PK)
+CREATE INDEX IF NOT EXISTS idx_provider_authorized_official_provider_id ON provider_authorized_official(provider_id);
+
+-- 6. taxonomy_reference 
 CREATE TABLE IF NOT EXISTS taxonomy_reference (
     id BIGSERIAL PRIMARY KEY,
     taxonomy_code VARCHAR(20) NOT NULL,
@@ -111,9 +124,11 @@ CREATE TABLE IF NOT EXISTS taxonomy_reference (
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE INDEX IF NOT EXISTS idx_taxonomy_reference_taxonomy_code ON taxonomy_reference(taxonomy_code);
 
 --# Pl File
-CREATE TABLE provider_secondary_practice_location (
+
+CREATE TABLE IF NOT EXISTS provider_secondary_practice_location (
     id BIGSERIAL PRIMARY KEY,
     npi BIGINT,
     address_line1 VARCHAR(200),
@@ -129,8 +144,10 @@ CREATE TABLE provider_secondary_practice_location (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE INDEX IF NOT EXISTS idx_provider_secondary_practice_location_npi ON provider_secondary_practice_location(npi);
 
 --# Endpoints File
+
 CREATE TABLE IF NOT EXISTS ENDPOINT_AFFILIATION(
     AFFILIATION_ID SERIAL PRIMARY KEY,
     AFFILIATION_PRIMARY_ADDRESS VARCHAR(55) NOT NULL DEFAULT 'N/A',
@@ -142,6 +159,8 @@ CREATE TABLE IF NOT EXISTS ENDPOINT_AFFILIATION(
     CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE INDEX IF NOT EXISTS idx_endpoint_affiliation_city_state ON ENDPOINT_AFFILIATION(AFFILIATION_ADDRESS_CITY, AFFILIATION_ADDRESS_STATE);
 
 CREATE TABLE IF NOT EXISTS ENDPOINTS(
     ENDPOINT_ID SERIAL PRIMARY KEY,
@@ -164,6 +183,10 @@ CREATE TABLE IF NOT EXISTS ENDPOINTS(
     FOREIGN KEY (AFFILIATION_ID) REFERENCES ENDPOINT_AFFILIATION(AFFILIATION_ID)
 );
 
+CREATE INDEX IF NOT EXISTS idx_endpoints_npi ON ENDPOINTS(NPI);
+CREATE INDEX IF NOT EXISTS idx_endpoints_affiliation_id ON ENDPOINTS(AFFILIATION_ID);
+CREATE INDEX IF NOT EXISTS idx_endpoints_endpoint_type ON ENDPOINTS(ENDPOINT_TYPE);
+
 --# Othername File
 
 -- Create final cleaned table
@@ -176,6 +199,10 @@ CREATE TABLE IF NOT EXISTS provider_othername (
     UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (npi, other_name, name_type_code)
 );
+
+CREATE INDEX IF NOT EXISTS idx_provider_othername_npi ON provider_othername(npi);
+CREATE INDEX IF NOT EXISTS idx_provider_othername_name_type_code ON provider_othername(name_type_code);
+
 
 --# STAGING TABLES:
 
