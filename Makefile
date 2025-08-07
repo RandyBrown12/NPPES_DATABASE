@@ -38,7 +38,7 @@ run:
 	"$(current_directory)/automate_data_fetching.sh"
 
 help:
-	@echo "Command: make [target] [..target] "
+	@echo "Command: make [target] [...target] "
 	@echo "Available targets:";
 	@echo " check_packages - Verify all packages are installed on your computer before proceeding "
 	@echo " test - Verify all packages are installed on your computer before proceeding "
