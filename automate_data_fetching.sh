@@ -79,7 +79,7 @@ pl_csv_filepath=$(find "$current_directory/Original_data" -type f | grep -E 'pl_
 psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -f "$current_directory/db/schema.sql"
 
 # Gather CPU information for python files
-BYTES_PER_ROW=3000
+BYTES_PER_ROW=4500
 
 # Get available RAM in KB
 AVAILABLE_KB=$(grep MemAvailable /proc/meminfo | awk '{print $2}')
@@ -89,7 +89,7 @@ CHUNK_SIZE=$(echo "($AVAILABLE_KB * 1024 * 0.25) / $BYTES_PER_ROW" | bc)
 echo "Chunk Size in Bytes: $CHUNK_SIZE"
 
 # Perform data cleaning for the 4 files
-time python "$current_directory/db_staging.py" -i "$npi_csv_filepath" -o "npidata_cleaned.csv" -c "$CHUNK_SIZE"
+python "$current_directory/db_staging.py" -i "$npi_csv_filepath" -o "npidata_cleaned.csv" -c "$CHUNK_SIZE"
 python "$current_directory/db_staging.py" -i "$pl_csv_filepath" -o "pl_cleaned.csv" -c "$CHUNK_SIZE"
 python "$current_directory/db_staging.py" -i "$endpoint_csv_filepath" -o "endpoint_cleaned.csv" -c "$CHUNK_SIZE"
 python "$current_directory/db_staging.py" -i "$othername_csv_filepath" -o "othername_cleaned.csv" -c "$CHUNK_SIZE"
@@ -103,6 +103,18 @@ psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\CO
 wait 
 
 # Perform data loading
-psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -f "$current_directory/db/load_data.sql"
+# Start with providers schema first since they load longer and is dependent for other tables
+psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -f "$current_directory/db/providers/load_providers.sql"
+
+# Concurrently run other provider tables
+psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -f "$current_directory/db/providers/load_providers_taxonomy.sql" &
+psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -f "$current_directory/db/providers/load_providers_other_identifier.sql" &
+psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -f "$current_directory/db/providers/load_providers_authorized_official.sql" &
+psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -f "$current_directory/db/providers/load_providers_address_mailing.sql" &
+psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -f "$current_directory/db/providers/load_providers_address_practice.sql" &
+
+wait 
+
+psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -f "$current_directory/db/others/load_others.sql"
 
 echo "automate_data_fetching.sh has been finished!"

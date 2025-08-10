@@ -4,58 +4,70 @@ import argparse
 import threading
 import queue
 import pyarrow as pa
-import pyarrow.csv as csv
+import pyarrow.csv as pacsv
+import pyarrow.compute as pc
 
 # === SETTINGS ===
 def write_pyarrow_chunk_to_csv(table: pa.Table, output_csv: str, append=False):
-    sink = pa.BufferOutputStream()
-    csv.write_csv(table, sink)
-    csv_bytes = sink.getvalue().to_pybytes()
-    csv_str = csv_bytes.decode('utf-8')
 
-    mode = 'a' if append else 'w'
+    write_options = pacsv.WriteOptions(
+        include_header=not append,  # Only include header if not appending
+        batch_size=65536  # Larger batch size for better performance
+    )
+    
+    mode = 'ab' if append else 'wb'  # Use binary mode for better performance
+    
+    try:
+        with open(output_csv, mode) as file:
+            # Write directly to file instead of intermediate buffer
+            pacsv.write_csv(table, file, write_options=write_options)
+    except IOError as e:
+        print(f"Error writing to {output_csv}: {e}")
+        raise
 
-    with open(output_csv, mode, encoding='utf-8') as file:
-        if append:
-            lines = csv_str.splitlines()
-            file.write('\n'.join(lines[1:]) + '\n')  # Skip header for appending
+def clean_string_column(arr, column_name):
+
+    default_value = pa.scalar('N/A')
+    if column_name in ['Is Sole Proprietor', 'Is Organization Subpart','Affiliation']:
+        default_value = pa.scalar('X')
+
+    # Strip whitespace
+    stripped = pc.utf8_trim_whitespace(arr)
+    # Replace empty strings with 'N/A'
+    replaced = pc.if_else(pc.equal(stripped, pa.scalar('')), default_value, stripped)
+    return replaced
+
+def clean_table(table):
+    # For each column, if string type, apply clean_string_column
+    columns = []
+    for column_name in table.schema.names:
+        column = table[column_name]
+        if pa.types.is_string(column.type):
+            cleaned_column = clean_string_column(column, column_name)
+            columns.append(cleaned_column)
         else:
-            file.write(csv_str)
+            columns.append(column)
+    return pa.Table.from_arrays(columns, schema=table.schema)
 
-def clean_series(series):
-    """Perform simple clean and replace with N/A"""
-    return series.astype(str).str.strip().replace('', 'N/A')
-
-def clean_dataframe(chunk: pd.DataFrame) -> pd.DataFrame:
-    """
-    Perform data cleaning on a chunk of the Dataframe
-    and output to a CSV file.
-
-    Also, Performs multiprocessing.
-    """
-
-    # Perform data cleaning for each column by splitting the work to processors
-    with ProcessPoolExecutor() as executor:
-        futures = {executor.submit(clean_series, chunk[column]): column for column in chunk.columns}
-        results = {}
-        for future in futures:
-            column = futures[future]
-            results[column] = future.result()
-
-    # Combine results back into the original DataFrame
-    cleaned_chunk = pd.DataFrame(results, index=chunk.index)
-    return cleaned_chunk
-
-def producer(arguments, shared_queue: queue.Queue, max_queue_size: int):
-    chunk_size = arguments.chunk_size // max_queue_size
+def producer(arguments, shared_queue: queue.Queue):
     chunks_cleaned = 0
-    with pd.read_csv(arguments.input_file, chunksize=chunk_size, keep_default_na=False) as reader:
-        for chunk in reader:
-            print(f"Cleaning chunk {chunks_cleaned + 1}")
-            cleaned_chunk = clean_dataframe(chunk)
-            shared_queue.put(cleaned_chunk)
-            print(f"Chunk {chunks_cleaned + 1} cleaned")
-            chunks_cleaned += 1
+
+    # Read the file as they are all strings
+    header_reader = pacsv.open_csv(arguments.input_file)
+
+    first_batch = next(iter(header_reader))
+    column_names = first_batch.schema.names
+    column_types = {col_name: pa.string() for col_name in column_names}
+
+    convert_options = pacsv.ConvertOptions(column_types=column_types)
+    read_options = pacsv.ReadOptions(block_size=arguments.chunk_size)
+
+    reader = pacsv.open_csv(arguments.input_file, convert_options=convert_options, read_options=read_options)
+
+    for batch in reader:
+        cleaned_chunk = clean_table(pa.Table.from_batches([batch]))
+        shared_queue.put(cleaned_chunk)
+        chunks_cleaned += 1
     shared_queue.put(None)  # Sentinel to signal end of data
 
 def consumer(arguments, shared_queue):
@@ -65,17 +77,7 @@ def consumer(arguments, shared_queue):
         if cleaned_chunk is None:
             break
 
-        print(f"Processing chunk {chunks_cleaned + 1}")
-
-        # Convert to PyArrow Table for faster serialization
-        table = pa.Table.from_pandas(cleaned_chunk)
-
-        if chunks_cleaned == 0:
-            write_pyarrow_chunk_to_csv(table, arguments.output_file, append=False)
-        else:
-            write_pyarrow_chunk_to_csv(table, arguments.output_file, append=True)
-
-        print(f"Chunk {chunks_cleaned + 1} processed")
+        write_pyarrow_chunk_to_csv(cleaned_chunk, arguments.output_file, append=(chunks_cleaned > 0))
         chunks_cleaned += 1
         shared_queue.task_done()
 
@@ -95,7 +97,7 @@ if __name__ == '__main__':
     MAXIMUM_QUEUE_SIZE = 3
     shared_queue = queue.Queue(maxsize=MAXIMUM_QUEUE_SIZE)
 
-    producer_thread = threading.Thread(target=producer, args=(args, shared_queue, MAXIMUM_QUEUE_SIZE))
+    producer_thread = threading.Thread(target=producer, args=(args, shared_queue))
     consumer_thread = threading.Thread(target=consumer, args=(args, shared_queue))
 
     producer_thread.start()
