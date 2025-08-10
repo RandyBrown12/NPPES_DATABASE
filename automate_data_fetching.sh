@@ -1,4 +1,4 @@
-#!/usr/bin/sh
+#!/usr/bin/bash
 
 # -------------------------------------------------------
 # 
@@ -16,6 +16,29 @@
 # Initialed Bash Script for this
 #
 # -------------------------------------------------------
+
+# Perform early exit whenever any of the commands receive an error.
+set -e
+
+# Must be used with every command in order to perform early exit. This will also output data if its successful
+error_handling() {
+    local cmd="$*"
+    local output
+    
+    set +e
+    output=$($cmd 2>&1)
+    local exit_code=$?
+    set -e
+    
+    if [ $exit_code -ne 0 ]; then
+        echo "Command '$cmd' failed with exit code $exit_code"
+        echo "Error: $output"
+        exit $exit_code
+    fi
+    
+    echo "$output"
+}
+
 current_directory=$(pwd)
 
 # Grab the current month and year for NPPES database
@@ -55,17 +78,29 @@ pl_csv_filepath=$(find "$current_directory/Original_data" -type f | grep -E 'pl_
 # Load the schema file
 psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -f "$current_directory/db/schema.sql"
 
+# Gather CPU information for python files
+BYTES_PER_ROW=3000
+
+# Get available RAM in KB
+AVAILABLE_KB=$(grep MemAvailable /proc/meminfo | awk '{print $2}')
+
+# Calculate chunk size (use 25% of available RAM)
+CHUNK_SIZE=$(echo "($AVAILABLE_KB * 1024 * 0.25) / $BYTES_PER_ROW" | bc)
+echo "Chunk Size in Bytes: $CHUNK_SIZE"
+
 # Perform data cleaning for the 4 files
-python "$current_directory/db_staging.py" -i "$npi_csv_filepath" -o "npidata_cleaned.csv" -p 4
-python "$current_directory/db_staging.py" -i "$endpoint_csv_filepath" -o "endpoint_cleaned.csv" -p 4
-python "$current_directory/db_staging.py" -i "$othername_csv_filepath" -o "othername_cleaned.csv" -p 4
-python "$current_directory/db_staging.py" -i "$pl_csv_filepath" -o "pl_cleaned.csv" -p 4
+time python "$current_directory/db_staging.py" -i "$npi_csv_filepath" -o "npidata_cleaned.csv" -c "$CHUNK_SIZE"
+python "$current_directory/db_staging.py" -i "$pl_csv_filepath" -o "pl_cleaned.csv" -c "$CHUNK_SIZE"
+python "$current_directory/db_staging.py" -i "$endpoint_csv_filepath" -o "endpoint_cleaned.csv" -c "$CHUNK_SIZE"
+python "$current_directory/db_staging.py" -i "$othername_csv_filepath" -o "othername_cleaned.csv" -c "$CHUNK_SIZE"
 
 # Perform COPY commands
-psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\COPY STAGING_TABLE_ENDPOINTS FROM '$current_directory/Original_data/endpoint_cleaned.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '\"')"
-psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\COPY STAGING_TABLE_NPI FROM '$current_directory/Original_data/npidata_cleaned.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '\"')"
-psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\COPY STAGING_OTHERNAME_PFILE FROM '$current_directory/Original_data/othername_cleaned.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '\"')"
-psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\COPY provider_secondary_practice_location (npi, address_line1, address_line2, city_name, state_name, postal_code, country_code, telephone_number, telephone_extension, fax_number) FROM '$current_directory/Original_data/pl_cleaned.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '\"')"
+psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\COPY STAGING_TABLE_ENDPOINTS FROM '$current_directory/Original_data/endpoint_cleaned.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '\"')" &
+psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\COPY STAGING_TABLE_NPI FROM '$current_directory/Original_data/npidata_cleaned.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '\"')" &
+psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\COPY STAGING_OTHERNAME_PFILE FROM '$current_directory/Original_data/othername_cleaned.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '\"')" &
+psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\COPY provider_secondary_practice_location (npi, address_line1, address_line2, city_name, state_name, postal_code, country_code, telephone_number, telephone_extension, fax_number) FROM '$current_directory/Original_data/pl_cleaned.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '\"')" &
+
+wait 
 
 # Perform data loading
 psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -f "$current_directory/db/load_data.sql"
