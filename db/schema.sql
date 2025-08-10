@@ -130,7 +130,7 @@ CREATE INDEX IF NOT EXISTS idx_taxonomy_reference_taxonomy_code ON taxonomy_refe
 
 CREATE TABLE IF NOT EXISTS provider_secondary_practice_location (
     id BIGSERIAL PRIMARY KEY,
-    npi BIGINT,
+    npi BIGINT REFERENCES providers(NPI),
     address_line1 VARCHAR(200),
     address_line2 VARCHAR(200),
     city_name VARCHAR(100),
@@ -192,7 +192,7 @@ CREATE INDEX IF NOT EXISTS idx_endpoints_endpoint_type ON ENDPOINTS(ENDPOINT_TYP
 -- Create final cleaned table
 CREATE TABLE IF NOT EXISTS provider_othername (
     id SERIAL PRIMARY KEY,
-    npi VARCHAR(10) NOT NULL,
+    npi BIGINT NOT NULL REFERENCES providers(NPI),
     other_name VARCHAR(255) NOT NULL,
     name_type_code CHAR(1) NOT NULL,
     CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -563,7 +563,7 @@ CREATE TABLE IF NOT EXISTS STAGING_TABLE_NPI (
 
 -- Create staging table to match CSV file
 CREATE TABLE IF NOT EXISTS staging_othername_pfile (
-    npi VARCHAR(10),
+    npi BIGINT,
     provider_other_organization_name VARCHAR(255),
     provider_other_organization_name_type_code CHAR(1)
 );

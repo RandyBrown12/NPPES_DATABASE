@@ -61,7 +61,7 @@ SELECT
     provider_other_organization_name_type_code
 FROM staging_othername_pfile
 WHERE
-    npi IS NOT NULL AND npi <> ''
+    npi IS NOT NULL AND npi <> 0
     AND provider_other_organization_name IS NOT NULL AND provider_other_organization_name <> ''
     AND provider_other_organization_name_type_code IN ('3', '4', '5','6');
 
