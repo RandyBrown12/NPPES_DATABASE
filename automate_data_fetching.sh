@@ -38,7 +38,7 @@ db_host=$(jq -r '.host' "$info_json_location")
 db_port=$(jq -r '.port' "$info_json_location")
 
 # Validate the JSON works for making a connection
-pytest "$current_directory/tests.py::test_database_connection" || (echo "Database Connection Failed!" && exit 1)
+pytest "$current_directory/Original_data/test_database.py::test_database_connection" || (echo "Database Connection Failed!" && exit 1)
 
 DATA_LINK="https://download.cms.gov/nppes/NPPES_Data_Dissemination_${MONTH}_${YEAR}_V2.zip"
 DEST_ZIP="NPPES_Data_Dissemination_${MONTH}_${YEAR}_V2.zip"
