@@ -20,25 +20,6 @@
 # Perform early exit whenever any of the commands receive an error.
 set -e
 
-# Must be used with every command in order to perform early exit. This will also output data if its successful
-error_handling() {
-    local cmd="$*"
-    local output
-    
-    set +e
-    output=$($cmd 2>&1)
-    local exit_code=$?
-    set -e
-    
-    if [ $exit_code -ne 0 ]; then
-        echo "Command '$cmd' failed with exit code $exit_code"
-        echo "Error: $output"
-        exit $exit_code
-    fi
-    
-    echo "$output"
-}
-
 current_directory=$(pwd)
 
 # Grab the current month and year for NPPES database
@@ -53,7 +34,6 @@ db_username=$(jq -r '.user' "$info_json_location")
 db_password=$(jq -r '.password' "$info_json_location")
 db_host=$(jq -r '.host' "$info_json_location")
 db_port=$(jq -r '.port' "$info_json_location")
-
 
 DATA_LINK="https://download.cms.gov/nppes/NPPES_Data_Dissemination_${MONTH}_${YEAR}_V2.zip"
 DEST_ZIP="NPPES_Data_Dissemination_${MONTH}_${YEAR}_V2.zip"
