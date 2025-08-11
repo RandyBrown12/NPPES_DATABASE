@@ -25,15 +25,16 @@ def main():
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM PROVIDERS")
     providers_count = cursor.fetchone()[0]
-    cursor.execute("SELECT COUNT(*) FROM PROVIDERS WHERE PROVIDER_ORGANIZATION_NAME = 'N/A'")
+    cursor.execute("SELECT COUNT(*) FROM PROVIDERS WHERE PROVIDER_ORGANIZATION_NAME = 'N/A' AND PROVIDER_LAST_NAME != 'N/A' AND PROVIDER_FIRST_NAME != 'N/A'")
     type_one_providers_count = cursor.fetchone()[0]
-    cursor.execute("SELECT COUNT(*) FROM PROVIDERS WHERE PROVIDER_LAST_NAME = 'N/A' AND PROVIDER_FIRST_NAME = 'N/A'")
+    cursor.execute("SELECT COUNT(*) FROM PROVIDERS WHERE PROVIDER_ORGANIZATION_NAME != 'N/A' AND PROVIDER_LAST_NAME = 'N/A' AND PROVIDER_FIRST_NAME = 'N/A'")
     type_two_providers_count = cursor.fetchone()[0]
 
     log_message(f"Total number of providers: {providers_count}")
     log_message(f"Total number of type one providers: {type_one_providers_count}")
     log_message(f"Total number of type two providers: {type_two_providers_count}")
-
+    log_message(f"Total number of providers with unknown organization: {providers_count - type_one_providers_count - type_two_providers_count}")
+    
     cursor.close()
     conn.close()
 
