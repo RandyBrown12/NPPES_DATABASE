@@ -45,4 +45,9 @@ help:
 	@echo " clean_NPPES_data - Clear the Original_data directory when the run command is finished "
 	@echo " clean_db - Drop all the tables and types in the database "
 	@echo " run - Run the main script which performs ETL (Extract, Transfer, Load) into the database "
+	@echo " summary - Print out a summary of provider data"
 
+summary:
+	@echo "Creating Summary"
+	@python "$(current_directory)/summary.py"
+	@echo "Summary has been completed!"
