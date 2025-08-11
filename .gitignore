@@ -7,3 +7,5 @@ npidata_staging_cleaned.csv
 __pycache__/
 .pytest_cache/
 Notes.txt
+.coverage
+tests/test_data/output.*
