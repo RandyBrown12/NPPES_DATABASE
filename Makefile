@@ -19,6 +19,7 @@ check_packages:
 
 test:
 	pytest "$(current_directory)/tests/test_database.py"
+	pytest "$(current_directory)/tests/test_db_staging.py"
 
 clear_NPPES_data:
 	@echo "Removing Original_data directory in this repository"
