@@ -8,7 +8,7 @@ import pyarrow.csv as pacsv
 import pyarrow.compute as pc
 
 # === SETTINGS ===
-def write_pyarrow_chunk_to_csv(table: pa.Table, output_csv: str, append=False):
+def write_pyarrow_chunk_to_csv(table: pa.Table, output_csv: str, append=False) -> None:
     """
     Write a CSV file from a pyarrow table to output_csv.
     """
@@ -39,8 +39,12 @@ def write_pyarrow_chunk_to_csv(table: pa.Table, output_csv: str, append=False):
         print(f"Error writing to {output_csv}: {e}")
         raise
 
-def clean_string_column(arr, column_name):
-
+def clean_string_column(arr: pa.Array, column_name: str) -> pa.Table:
+    if not pa.types.is_string(arr.type):
+        raise ValueError(f"Column '{column_name}' is not of string type.")
+    elif not isinstance(column_name, str):
+        raise TypeError(f"Column name '{column_name}' is not of string type.")
+    
     default_value = pa.scalar('N/A')
     if column_name in ['Is Sole Proprietor', 'Is Organization Subpart','Affiliation']:
         default_value = pa.scalar('X')
@@ -51,7 +55,7 @@ def clean_string_column(arr, column_name):
     replaced = pc.if_else(pc.equal(stripped, pa.scalar('')), default_value, stripped)
     return replaced
 
-def clean_table(table):
+def clean_table(table: pa.Table) -> pa.Table:
     # For each column, if string type, apply clean_string_column
     columns = []
     for column_name in table.schema.names:
@@ -116,8 +120,6 @@ if __name__ == '__main__':
 
     if not os.path.isfile(args.input_file):
         raise FileNotFoundError(f"Input file {args.input_file} does not exist.")
-    if args.chunk_size <= 20000:
-        raise ValueError("Chunk size must be greater than 20000 to ensure efficient processing.")
     elif args.chunk_size > 10000000:
         raise ValueError("Chunk size must be less than 10000000 to ensure efficient processing.")
 

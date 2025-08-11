@@ -55,3 +55,25 @@ def test_error_for_non_number_chunk():
     )
 
     assert "invalid int value" in result.stderr, "Invalid int value not found in stderr"
+
+def test_valid_arguments():
+
+    if os.path.exists(os.path.join(repository_directory, 'tests/test_data/output.csv')):
+        os.remove(os.path.join(repository_directory, 'tests/test_data/output.csv'))
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            os.path.join(repository_directory, 'db_staging.py'),
+            '--input_file',
+            os.path.join(repository_directory, 'tests/test_data/othername_test.csv'),
+            '--output_file',
+            os.path.join(repository_directory, 'tests/test_data/output.csv'),
+            '--chunk_size',
+            '100000'
+        ],
+        capture_output=True,
+        text=True
+    )
+
+    assert result.returncode == 0, "Expected successful execution"
