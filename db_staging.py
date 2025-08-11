@@ -1,4 +1,6 @@
 from concurrent.futures import ProcessPoolExecutor
+import os
+import sys
 import pandas as pd
 import argparse
 import threading
@@ -9,6 +11,20 @@ import pyarrow.compute as pc
 
 # === SETTINGS ===
 def write_pyarrow_chunk_to_csv(table: pa.Table, output_csv: str, append=False):
+    """
+    Write a CSV file from a pyarrow table to output_csv.
+    """
+    if table is None or table.num_rows == 0:
+        print("Empty table created")
+        sys.exit(1)
+    
+    if not isinstance(output_csv, str):
+        print("output_csv is not a string!")
+        sys.exit(1)
+
+    if not isinstance(append, bool):
+        print("append is not a boolean!")
+        sys.exit(1)
 
     write_options = pacsv.WriteOptions(
         include_header=not append,  # Only include header if not appending
@@ -50,6 +66,10 @@ def clean_table(table):
     return pa.Table.from_arrays(columns, schema=table.schema)
 
 def producer(arguments, shared_queue: queue.Queue):
+    """
+    The purpose of this producer is to produce chunks into a 
+    queue for the consumer to read.
+    """
     chunks_cleaned = 0
 
     # Read the file as they are all strings
@@ -71,9 +91,17 @@ def producer(arguments, shared_queue: queue.Queue):
     shared_queue.put(None)  # Sentinel to signal end of data
 
 def consumer(arguments, shared_queue):
+    """
+    The purpose of this consumer is to consume chunks from the queue
+    and write them to the output CSV file.
+    """
     chunks_cleaned = 0
     while True:
-        cleaned_chunk = shared_queue.get()
+        try:
+            cleaned_chunk = shared_queue.get(timeout=300)  # Set 5-minute timeout if taking too long
+        except queue.TimeoutError:
+            sys.exit(1)
+
         if cleaned_chunk is None:
             break
 
@@ -88,11 +116,16 @@ if __name__ == '__main__':
     arg_parser.add_argument('-c', '--chunk_size', type=int, default=100000, help='Process the file into chunks of this size')
     args = arg_parser.parse_args()
 
-    if len(args.input_file) == 0:
-        raise ValueError("Input CSV file path must be a single string.")
-    elif len(args.output_file) == 0:
-        raise ValueError("Output CSV file path must be a single string.")
+    if not os.path.isfile(args.input_file):
+        raise FileNotFoundError(f"Input file {args.input_file} does not exist.")
+    if args.chunk_size <= 20000:
+        raise ValueError("Chunk size must be greater than 20000 to ensure efficient processing.")
+    elif args.chunk_size > 10000000:
+        raise ValueError("Chunk size must be less than 10000000 to ensure efficient processing.")
 
+    if os.path.exists(args.output_file):
+        raise FileExistsError(f"Output file {args.output_file} already exists. Please choose a different output file name.")
+    
     # Perform Producer-Consumer Pattern for processing a large CSV file.
     MAXIMUM_QUEUE_SIZE = 3
     shared_queue = queue.Queue(maxsize=MAXIMUM_QUEUE_SIZE)
