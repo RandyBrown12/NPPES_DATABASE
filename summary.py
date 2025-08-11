@@ -3,8 +3,6 @@ import json
 import psycopg2
 import os
 
-log_file_location = "provider_summary.log"
-
 def main():
     """
     This is the main function connecting to the database with following summary requirements:
@@ -41,11 +39,7 @@ def main():
 
 def log_message(message):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    with open(log_file_location, 'a') as log_file:
-        log_file.write(f"[{timestamp}] {message}\n")
+    print(f"[{timestamp}] {message}")
 
 if __name__ == "__main__":
-    """Remove log if it has been created. Otherwise continue."""
-    if os.path.exists(log_file_location):
-        os.remove(log_file_location)
     main()
