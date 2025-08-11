@@ -15,6 +15,8 @@
 # Version 1.0
 # Initialed Bash Script for this
 #
+# Version 1.1
+# Add Early Exit if any commands comes with an error
 # -------------------------------------------------------
 
 # Perform early exit whenever any of the commands receive an error.
@@ -78,7 +80,6 @@ python "$current_directory/db_staging.py" -i "$othername_csv_filepath" -o "other
 psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\COPY STAGING_TABLE_ENDPOINTS FROM '$current_directory/Original_data/endpoint_cleaned.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '\"')" &
 psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\COPY STAGING_TABLE_NPI FROM '$current_directory/Original_data/npidata_cleaned.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '\"')" &
 psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\COPY STAGING_OTHERNAME_PFILE FROM '$current_directory/Original_data/othername_cleaned.csv' WITH (FORMAT csv, HEADER true, DELIMITER ',', QUOTE '\"')" &
-
 
 wait 
 
