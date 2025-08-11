@@ -35,8 +35,10 @@ The project uses a Makefile to simplify common operations. Here are the availabl
 * `make test` - Run all tests once run is completed
 * `make clear_NPPES_data` - Clear Original_data directory once run is finished
 * `make clear_db` - Clear all tables and types from the current database
-* `make run` - Run the shell script automate_data_fetching.sh which performs ETL (Extract, Transfer, and Load)
 * `make help` - Runs all commands for the make file
+* `make summary` - Creates a summary of the given database information
+* `make run` - Run the shell script automate_data_fetching.sh which performs ETL (Extract, Transfer, and Load)
+> Note: If you want this to be in a crontab type in this command `make clear_NPPES_data clear_db run`
 
 ### Setting up a Postgres web application
 1. Add a virtual environment
@@ -45,7 +47,7 @@ Command: `python -m venv .venv`
 Command: `source .venv/bin/activate`
 3. Install packages through uv
 Command: `uv pip install -r requirements.txt`
-4. Create a directory to store postgres web app information.
+4. Create a directory to store postgres web app information
 Command: `mkdir pg_data`
 5. Insert a config_local.py in pgadmin4 directory for using pg_data directory with the contents. The directory is found in the lib64 folder
 ```python
