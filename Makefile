@@ -1,5 +1,5 @@
 # All packages in Linux that you need
-needed_packages=make curl jq python psql pytest unzip
+needed_packages=make curl jq python psql pytest unzip 
 
 current_directory := $(shell pwd)
 
@@ -35,8 +35,11 @@ clear_db:
 	db_port=$$(jq -r '.port' $$info_json_location); \
 	psql "postgresql://$$db_username:$$db_password@$$db_host:$$db_port/$$db_name" -f "$(current_directory)/db/drop_tables.sql"
 
-run:
-	"$(current_directory)/automate_data_fetching.sh"
+run_NPPES:
+	"$(current_directory)/lib/NPPES_data_fetching.sh"
+
+run_taxonomy:
+	"$(current_directory)/lib/taxonomy_data_fetching.sh"
 
 help:
 	@echo "Command: make [target] [...target] "
@@ -49,4 +52,4 @@ help:
 	@echo " summary - Print out a summary of provider data "
 
 summary:
-	@python "$(current_directory)/summary.py"
+	@python "$(current_directory)/lib/summary.py"

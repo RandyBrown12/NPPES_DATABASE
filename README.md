@@ -37,7 +37,7 @@ The project uses a Makefile to simplify common operations. Here are the availabl
 * `make clear_db` - Clear all tables and types from the current database
 * `make help` - Runs all commands for the make file
 * `make summary` - Creates a summary of the given database information
-* `make run` - Run the shell script automate_data_fetching.sh which performs ETL (Extract, Transfer, and Load)
+* `make run` - Run the shell script NPPES_data_fetching.sh which performs ETL (Extract, Transfer, and Load)
 > Note: If you want this to be in a crontab type in this command `make clear_NPPES_data clear_db run`
 
 ### Setting up a Postgres web application

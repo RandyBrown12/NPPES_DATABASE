@@ -11,7 +11,8 @@ def main():
     - Total number of type one providers
     - Total number of type two providers
     """
-    info_path = os.path.join(os.path.dirname(__file__), 'info.json')
+    current_path = os.path.dirname(__file__)
+    info_path = os.path.join(os.path.dirname(current_path), 'info.json')
     with open(info_path, 'r') as file:
         info = json.load(file)
     conn = psycopg2.connect(

@@ -7,18 +7,22 @@ set -euo pipefail
 PAGE_URL="https://www.nucc.org/index.php/code-sets-mainmenu-41/provider-taxonomy-mainmenu-40/csv-mainmenu-57"
 
 # Where to store files (fixed location on Windows C: drive via WSL)
-DATA_DIR="/mnt/e/Course_Work_CMU/Internship/EMRTS/P4_Data/Clean_data"
+current_directory=$(pwd)
+DATA_DIR="$current_directory/Original_data"
 RAW_CSV="${DATA_DIR}/nucc_taxonomy_raw.csv"
 CLEAN_CSV="${DATA_DIR}/nucc_taxonomy_cleaned.csv"
 
+info_json_location="$current_directory/info.json"
+
 # DB connection (use .pgpass or PGPASSWORD if needed)
-DB_HOST="localhost"
-DB_PORT="5432"
-DB_NAME="provider_management"
-DB_USER="hetong"
+db_name=$(jq -r '.database' "$info_json_location")
+db_username=$(jq -r '.user' "$info_json_location")
+db_password=$(jq -r '.password' "$info_json_location")
+db_host=$(jq -r '.host' "$info_json_location")
+db_port=$(jq -r '.port' "$info_json_location")
 
 # Path to the cleaner script (Python)
-CLEANER_SCRIPT="./clean_nucc_taxonomy.py"   # change if located elsewhere
+CLEANER_SCRIPT="$current_directory/lib/clean_nucc_taxonomy.py"   # change if located elsewhere
 ############################################
 
 echo "==> Ensuring data directory exists: ${DATA_DIR}"
@@ -59,12 +63,10 @@ PYBIN=$(command -v python3 || command -v python)
 echo "==> Cleaning CSV (keep taxonomy_code, specialization, definition; fill blanks with N/A)..."
 "${PYBIN}" "${CLEANER_SCRIPT}" "${RAW_CSV}" "${CLEAN_CSV}"
 
-PSQL_CONN=( psql -h "${DB_HOST}" -p "${DB_PORT}" -d "${DB_NAME}" -U "${DB_USER}" )
-
 echo "==> Truncating taxonomy_reference (and resetting identity)..."
-"${PSQL_CONN[@]}" -c "TRUNCATE TABLE taxonomy_reference RESTART IDENTITY;"
+psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "TRUNCATE TABLE taxonomy_reference RESTART IDENTITY;"
 
 echo "==> Loading cleaned CSV into taxonomy_reference..."
-"${PSQL_CONN[@]}" -c "\copy taxonomy_reference(taxonomy_code,specialization,definition) FROM '${CLEAN_CSV}' WITH (FORMAT csv, HEADER true, DELIMITER ',');"
+psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "\copy taxonomy_reference(taxonomy_code,specialization,definition) FROM '${CLEAN_CSV}' WITH (FORMAT csv, HEADER true, DELIMITER ',');"
 
 echo "==> Done. New taxonomy loaded from: ${CLEAN_CSV}"
