@@ -18,12 +18,63 @@ The Purpose of this project is to perform ETL (Extract, Transfer, and Load) from
     2. Restart your computer when prompted
     3. When your computer restarts, WSL will continue installation and ask you to create a username and password for Ubuntu
     4. After setup completes, you'll have Ubuntu running on Windows.
-  - Make inside WSL
-    1. Install using this command: `sudo apt install make`
-* macOS:
-  - Install make using Homebrew (install Homebrew first if not installed):
+  - Install required packages in WSL:
     ```bash
-    brew install make
+    sudo apt update
+    sudo apt install make python3 python3-pip postgresql postgresql-contrib
+    ```
+  - Setup Database
+    1. Start PostgreSQL service in WSL:
+    ```bash
+    sudo service postgresql start
+    ```
+    2. Create database user and database:
+    ```bash
+    # Access PostgreSQL as the postgres superuser
+    sudo -u postgres psql
+
+    # Inside PostgreSQL shell, create a new user with password to access database
+    CREATE USER your_user WITH PASSWORD 'your_secure_password';
+    
+    # Create a new database
+    CREATE DATABASE your_db;
+    
+    # Grant privileges to the user
+    GRANT ALL PRIVILEGES ON DATABASE your_db TO your_user;
+    
+    # Exit PostgreSQL shell
+    \q
+    ```
+
+* macOS:
+  - Install required packages using Homebrew:
+    ```bash
+    brew install make postgresql python3
+    brew services start postgresql
+    ```
+  - Setup Database:
+    ```bash
+    # Create a new PostgreSQL user and database
+    psql postgres -c "CREATE USER nppes_user WITH PASSWORD 'your_secure_password';"
+    psql postgres -c "CREATE DATABASE nppes_db;"
+    psql postgres -c "GRANT ALL PRIVILEGES ON DATABASE nppes_db TO nppes_user;"
+    ```
+
+* Linux:
+  - Install required packages:
+    ```bash
+    sudo apt update
+    sudo apt install make python3 python3-pip postgresql postgresql-contrib
+    ```
+  - Setup Database:
+    ```bash
+    # Start PostgreSQL service if not already running
+    sudo service postgresql start
+    
+    # Create database user and database
+    sudo -u postgres psql -c "CREATE USER nppes_user WITH PASSWORD 'your_secure_password';"
+    sudo -u postgres psql -c "CREATE DATABASE nppes_db;"
+    sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE nppes_db TO nppes_user;"
     ```
 
 **The program also needs an info.json file for the database, copy the info_template.json to info.json and put in the information from your database.**
