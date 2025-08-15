@@ -3,6 +3,10 @@ needed_packages=make curl jq python psql pytest unzip
 
 current_directory := $(shell pwd)
 
+# job := "0 0 1 * * make"
+
+all: clear_db clear_NPPES_data run_taxonomy run_NPPES summary
+
 check_packages:
 	@all_packages_installed=true; \
 	for package in $(needed_packages); do \
@@ -44,11 +48,13 @@ run_taxonomy:
 help:
 	@echo "Command: make [target] [...target] "
 	@echo "Available targets:";
-	@echo " check_packages - Verify all packages are installed on your computer before proceeding "
-	@echo " test - Verify all packages are installed on your computer before proceeding "
+	@echo " all - Automate the pipeline by deleting all data and inserting in the new data "
 	@echo " clean_NPPES_data - Clear the Original_data directory when the run command is finished "
 	@echo " clean_db - Drop all the tables and types in the database "
-	@echo " run - Run the main script which performs ETL (Extract, Transfer, Load) into the database "
+	@echo " check_packages - Verify all packages are installed on your computer before proceeding "
+	@echo " run_NPPES - Run the script which performs ETL (Extract, Transfer, Load) on NPPES data into the database "
+	@echo " run_taxonomy - Run the script which performs ETL (Extract, Transfer, Load) on Taxonomy data into the database "
+	@echo " test - Verify all packages are installed on your computer before proceeding "
 	@echo " summary - Print out a summary of provider data "
 
 summary:

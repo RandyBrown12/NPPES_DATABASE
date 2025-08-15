@@ -63,6 +63,9 @@ PYBIN=$(command -v python3 || command -v python)
 echo "==> Cleaning CSV (keep taxonomy_code, specialization, definition; fill blanks with N/A)..."
 "${PYBIN}" "${CLEANER_SCRIPT}" "${RAW_CSV}" "${CLEAN_CSV}"
 
+echo "==> Creating taxonomy_reference table..."
+psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -f "$current_directory/db/schema_taxonomy.sql"
+
 echo "==> Truncating taxonomy_reference (and resetting identity)..."
 psql "postgresql://$db_username:$db_password@$db_host:$db_port/$db_name" -c "TRUNCATE TABLE taxonomy_reference RESTART IDENTITY;"
 

@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS provider_taxonomy (
     id SERIAL PRIMARY KEY,
     provider_id BIGINT NOT NULL REFERENCES providers(id),
     taxonomy_order INT NOT NULL, -- 1 to 15, corresponds to _1..._15
-    taxonomy_code VARCHAR(20) NOT NULL,
+    taxonomy_id BIGINT NOT NULL REFERENCES taxonomy_reference(id),
     license_number VARCHAR(50) NOT NULL,
     license_number_state_code VARCHAR(5) NOT NULL,
     primary_taxonomy_switch VARCHAR(1) NOT NULL,
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS provider_taxonomy (
 );
 
 CREATE INDEX IF NOT EXISTS idx_provider_taxonomy_provider_id ON provider_taxonomy(provider_id);
-CREATE INDEX IF NOT EXISTS idx_provider_taxonomy_taxonomy_code ON provider_taxonomy(taxonomy_code);
+CREATE INDEX IF NOT EXISTS idx_provider_taxonomy_taxonomy_id ON provider_taxonomy(taxonomy_id);
 
 -- 3. provider_address table 
 CREATE TABLE IF NOT EXISTS provider_address (
@@ -113,18 +113,6 @@ CREATE TABLE IF NOT EXISTS provider_authorized_official (
 );
 
 CREATE INDEX IF NOT EXISTS idx_provider_authorized_official_provider_id ON provider_authorized_official(provider_id);
-
--- 6. taxonomy_reference 
-CREATE TABLE IF NOT EXISTS taxonomy_reference (
-    id BIGSERIAL PRIMARY KEY,
-    taxonomy_code VARCHAR(20) NOT NULL,
-    specialization VARCHAR(255) NOT NULL,
-    definition TEXT NOT NULL,
-    CREATED_AT TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UPDATED_AT TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS idx_taxonomy_reference_taxonomy_code ON taxonomy_reference(taxonomy_code);
 
 --# Pl File
 
@@ -567,7 +555,6 @@ CREATE TABLE IF NOT EXISTS staging_othername_pfile (
     provider_other_organization_name VARCHAR(255),
     provider_other_organization_name_type_code CHAR(1)
 );
-
 -- To import taxonomy_reference or any of the staging tables, use COPY or pgAdmin import wizard:
 -- Example:
 -- COPY taxonomy_reference (taxonomy_code, specialization, definition)

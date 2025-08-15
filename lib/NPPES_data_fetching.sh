@@ -39,6 +39,7 @@ db_port=$(jq -r '.port' "$info_json_location")
 # Validate the JSON works for making a connection
 pytest "$repository_directory/tests/test_database.py::test_database_connection" || (echo "Database Connection Failed!" && exit 1)
 
+#--> Grab NPPES data first
 DATA_LINK="https://download.cms.gov/nppes/NPPES_Data_Dissemination_${MONTH}_${YEAR}_V2.zip"
 DEST_ZIP="NPPES_Data_Dissemination_${MONTH}_${YEAR}_V2.zip"
 
